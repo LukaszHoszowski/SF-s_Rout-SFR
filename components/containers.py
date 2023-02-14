@@ -61,3 +61,4 @@ class SFDC_Report():
     file_size: float = 0.0
     stream: str = ""
     content: DataFrame = field(default_factory=DataFrame)
+    

@@ -232,4 +232,3 @@ class SFDC_Connector():
                                 report.pull_date, report.processing_time, report.attempt_count, report.file_size])
         
         return final_report_path
-
