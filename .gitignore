@@ -1,0 +1,8 @@
+__pycache__/
+.vscode/
+downloader_env/
+/reports/*
+/input/*
+!/input/sfdc_reports-default.csv
+exec/
+/.env
