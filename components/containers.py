@@ -50,7 +50,7 @@ class SFDC_Report():
 
     report_id: str
     file_name: str
-    type: str = "HPE_SFDC"
+    type: str = "SFDC"
     path: os.PathLike|None = None
     downloaded: bool = False
     valid: bool = False

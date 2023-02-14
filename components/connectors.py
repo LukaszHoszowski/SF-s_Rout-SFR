@@ -77,7 +77,7 @@ class SFDC_Connector():
         timeout=900, 
         headers={'Content-Type': 'application/json', 
                 'X-PrettyPrint': '1'}, 
-        export_params='?export=&enc=UTF-8&isdtp=p1'):
+        export_params='?export=csv&enc=UTF-8&isdtp=p1'):
         
         self.domain = domain
         self.sid = self.sid_interception() if not sid else sid

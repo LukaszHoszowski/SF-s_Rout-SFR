@@ -11,7 +11,7 @@
 - clone the repo
 
 ```sh
-git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY
+git clone https://github.com/LukaszHoszowski/SF-s_Rout-SFR
 ```
 - create Python virtual env
 
@@ -19,13 +19,13 @@ git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY
 python -m venv /path/to/new/virtual/environment
 ```
  
-- Install dependencies
+- install dependencies
 
 ```sh
 pip install -r requirements.txt
 ```
 
-- fill config files **/input/sfdc_reports.csv** and **/.env**
+- fill in config files **/input/sfdc_reports.csv** and **/.env**
 
 ## How the program works
 
@@ -36,7 +36,7 @@ Once you run `main.py`:
 3) ? If SID is not present Program will invoke MS Edge to request SFDC domain in order to log in. Once you will log in the SID entry will be created and saved in local CookieJar database. After 30 sec SFR will try to intercept the value of newly created SID entry directly from DB.
 4) ? If SID is present, the App will execute check procedure. Program will try to reach SFDC domain, if SID is fine, aproperiate message will be printed.
 5) ? If self check fails Program will circle back to point no 3 and will execute SID interception procedure and repeat check. SID is a Session Cookie entry so it might expire with time and needs to be renewed before we will proceed further.
-6) If all the lights are green Connector wil create a list of report objects based on config file. 
+6) If all the lights are green Connector will create a list of report objects based on config file. 
 7) Next, reports will be distributed to independant processes and will be downloaded in parallel. Everything is orchestrated by Manager.
 8) ? If for some reasons the App will fail with some of the reports entire process will be reapeated for them to be sure that all requested reports are downloaded. There is no hard limit of number of attempts. Information about number of tries will be recorded.
 9) Finally, reports will be saved to CSV.
