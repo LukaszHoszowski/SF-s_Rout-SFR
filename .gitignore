@@ -2,6 +2,7 @@ __pycache__/
 .vscode/
 downloader_env/
 /reports/*
+!/reports/
 /input/*
 !/input/sfdc_reports-default.csv
 exec/
