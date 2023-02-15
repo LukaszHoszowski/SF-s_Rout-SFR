@@ -2,7 +2,7 @@ import os
 import sys
 
 
-def loading_cli_arguments():
+def loading_cli_arguments() -> tuple[str, str, str]:
     try:
         cli_path_input = sys.argv[1]
         cli_path_output = sys.argv[2]

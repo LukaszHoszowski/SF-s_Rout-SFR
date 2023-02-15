@@ -37,7 +37,7 @@ class Report(Protocol):
     report_id: str
     file_name: str
     type: str
-    directory: os.PathLike|None
+    path: str|None
     downloaded: bool
     valid: bool
     created_date: datetime
@@ -51,7 +51,7 @@ class SFDC_Report():
     report_id: str
     file_name: str
     type: str = "SFDC"
-    path: os.PathLike|None = None
+    path: str|None = None
     downloaded: bool = False
     valid: bool = False
     created_date: datetime = datetime.now()

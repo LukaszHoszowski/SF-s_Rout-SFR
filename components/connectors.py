@@ -1,7 +1,8 @@
 import csv
 from datetime import datetime
+from multiprocessing.managers import ListProxy
 import os
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 import browser_cookie3
 import webbrowser
 import requests
@@ -205,7 +206,7 @@ class SFDC_Connector():
         return None
 
     @staticmethod
-    def load_reports_list(report_list, report_directory):
+    def load_reports_list(report_list: str, report_directory: str) -> list[SFDC_Report]:
     
         reports = {}
         
@@ -219,7 +220,7 @@ class SFDC_Connector():
         return [SFDC_Report(report_id=v, file_name=k, path=report_directory) for k, v in reports.items()]
 
     @staticmethod    
-    def final_report(result_reports, final_report_path):
+    def final_report(result_reports, final_report_path: str) -> str:
         header = ['file_name', 'report_id', 'type', 'valid', 'created_date', 'pull_date', 'processing_time', 'attempt_count', 'file_size'] 
         
         with open(str(final_report_path), 'w', encoding='UTF8', newline='') as f:
