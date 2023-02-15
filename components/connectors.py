@@ -156,6 +156,8 @@ class SFDC_Connector():
                                     dtype='string',
                                     low_memory=False)
 
+        report.content = report.content.head(report.content.shape[0] -5)
+
         return report.content.shape
     
     def save_to_csv(self, report: SFDC_Report) -> str:
