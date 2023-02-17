@@ -1,3 +1,5 @@
+import asyncio
+import aiohttp
 import csv
 from datetime import datetime
 from multiprocessing.managers import ListProxy
@@ -76,7 +78,7 @@ class SFDC_Connector():
         *,
         sid=None,
         timeout=900, 
-        headers={'Content-Type': 'application/json', 
+        headers={'Content-Type': 'application/csv', 
                 'X-PrettyPrint': '1'}, 
         export_params='?export=csv&enc=UTF-8&isdtp=p1'):
         
@@ -150,6 +152,46 @@ class SFDC_Connector():
             report.valid = True
             return report.stream
 
+    
+    async def aio_report_request(self, report: SFDC_Report, session):
+        
+        print(f'Starting {report.file_name}')
+
+        report.created_date = datetime.now()
+        
+        report_url = self.domain + report.report_id + self.export_params
+
+        self.headers['Authorization'] = ''.join(filter(None, ['Bearer ', self.sid]))
+
+        async with session.get(report_url, 
+                                headers=self.headers, 
+                                cookies={'sid': str(self.sid)},
+                                timeout=self.timeout,
+                                allow_redirects=True) as r:
+
+            report.attempt_count += 1
+
+            if r.status != 200:
+                report.valid = False
+                return False
+            else:
+                report.stream = await r.text()
+                report.valid = True
+                print(f'Downloaded {report.file_name}')
+                return report.stream
+    
+    async def aio_report_request_all(self, reports: list[SFDC_Report], session):
+        tasks = []
+        for report in reports:
+            task = asyncio.create_task(self.aio_report_request(report, session))
+            tasks.append(task)
+        res = await asyncio.gather(*tasks)
+        return res
+    
+    async def aio_report_processing(self, reports: list[SFDC_Report]):
+        async with aiohttp.ClientSession() as session:
+            responses = await self.aio_report_request_all(reports, session)
+        
     def read_stream(self, report: SFDC_Report) -> tuple:
         
         report.content = pd.read_csv(StringIO(report.stream),   
@@ -183,7 +225,29 @@ class SFDC_Connector():
         report.stream = ""
         report.content = pd.DataFrame()
 
+        return None    
+    
+    def aio_report_processing2(self, report: SFDC_Report, result_reports: list) -> None:
+    
+        while not report.valid:
+            try:
+                self.read_stream(report)
+                self.save_to_csv(report)
+                self.erase_report(report)
+            except pd.errors.EmptyDataError as e:
+                print(f'Timeout {report.file_name}, {report.attempt_count}')
+                report.valid = False
+                continue
+            except pd.errors.ParserError as e:
+                print(f'Unexpected end of stream {report.file_name}, {report.attempt_count}')
+                report.valid = False
+                continue
+            break
+            
+        result_reports.append(report)
+
         return None
+
 
     def report_processing(self, report: SFDC_Report, result_reports: list) -> None:
     

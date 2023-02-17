@@ -1,3 +1,4 @@
+import asyncio
 import os
 from dotenv import load_dotenv
 from multiprocessing import Pool, Manager
@@ -9,46 +10,70 @@ from components.report_excpetions import EnvFileNotPresent
 
 if __name__ == '__main__':
 
-    with Manager() as manager:
+    try:
+        load_dotenv()
+    except EnvFileNotPresent:
+        print('.env file missing')
+
+    abs_path, report_list, report_directory = loading_cli_arguments()
+
+    final_report_path = abs_path + str(os.getenv("FINAL_REPORT_PATH"))
+    domain = str(os.getenv("SFDC_DOMAIN"))
+
+    connector = SFDC_Connector(domain=domain)
+    connector.connection_check()
+
+    reports = connector.load_reports_list(report_list, report_directory)
+
+    asyncio.run(connector.aio_report_processing(reports))
+
+    for report in reports:
+        connector.read_stream(report)
+        connector.save_to_csv(report)
+        connector.erase_report(report)
+    
+    
+    
+    # with Manager() as manager:
         
-        print("")
+    #     print("")
 
-        try:
-            load_dotenv()
-        except EnvFileNotPresent:
-            print('.env file missing')
+    #     try:
+    #         load_dotenv()
+    #     except EnvFileNotPresent:
+    #         print('.env file missing')
 
-        abs_path, report_list, report_directory = loading_cli_arguments()
+    #     abs_path, report_list, report_directory = loading_cli_arguments()
 
-        final_report_path = abs_path + str(os.getenv("FINAL_REPORT_PATH"))
-        domain = str(os.getenv("SFDC_DOMAIN"))
+    #     final_report_path = abs_path + str(os.getenv("FINAL_REPORT_PATH"))
+    #     domain = str(os.getenv("SFDC_DOMAIN"))
 
-        connector = SFDC_Connector(domain=domain)
-        connector.connection_check()
+    #     connector = SFDC_Connector(domain=domain)
+    #     connector.connection_check()
 
-        reports = connector.load_reports_list(report_list, report_directory)
+    #     reports = connector.load_reports_list(report_list, report_directory)
 
-        result_reports = manager.list()
+    #     result_reports = manager.list()
 
-        pool = Pool(processes=len(reports))
+    #     pool = Pool(processes=len(reports))
 
-        print("")
-        print(f'Processing of {len(reports)} reports started')
-        print(" ")
-        print(f'0% [{len(reports) * " "}] 100%')
-        print("    ", end='', flush=True)
+    #     print("")
+    #     print(f'Processing of {len(reports)} reports started')
+    #     print(" ")
+    #     print(f'0% [{len(reports) * " "}] 100%')
+    #     print("    ", end='', flush=True)
 
-        pool.starmap(connector.report_processing, [(report, result_reports) for report in reports])
+    #     pool.starmap(connector.report_processing, [(report, result_reports) for report in reports])
         
-        print(" ")
-        print(" ")
+    #     print(" ")
+    #     print(" ")
         
-        pool.close()
-        pool.join()
+    #     pool.close()
+    #     pool.join()
 
-        for report in result_reports:
-            print(f'{report.file_name:<40} attempts: {report.attempt_count:>2}, size: {report.file_size:<5} Mb, time: {report.processing_time}')
+    #     for report in result_reports:
+    #         print(f'{report.file_name:<40} attempts: {report.attempt_count:>2}, size: {report.file_size:<5} Mb, time: {report.processing_time}')
 
-        connector.final_report(result_reports, final_report_path)
+    #     connector.final_report(result_reports, final_report_path)
 
-        print(f'\nEnd of processing - {len(result_reports)} reports processed successfully')
+    #     print(f'\nEnd of processing - {len(result_reports)} reports processed successfully')
