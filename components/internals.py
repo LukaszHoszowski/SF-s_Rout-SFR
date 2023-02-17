@@ -1,8 +1,12 @@
 import os
 import sys
 
+from dotenv import load_dotenv
 
-def loading_cli_arguments() -> tuple[str, str, str]:
+from components.report_exceptions import EnvFileNotPresent
+
+
+def load_cli_arguments() -> tuple[str, str, str]:
     try:
         cli_path_input = sys.argv[1]
         cli_path_output = sys.argv[2]
@@ -23,3 +27,11 @@ def loading_cli_arguments() -> tuple[str, str, str]:
         report_directory = abs_path + str(os.getenv("REPORT_DIRECTORY"))    
 
     return abs_path, report_list, report_directory
+
+def load_env_file() -> None:
+    try:
+        load_dotenv()
+    except EnvFileNotPresent:
+        print('.env file missing')
+    
+    return None

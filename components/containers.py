@@ -1,8 +1,6 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 from datetime import datetime, timedelta
-
-from pandas import DataFrame
 
 
 @runtime_checkable
@@ -39,12 +37,14 @@ class Report(Protocol):
     downloaded: bool
     valid: bool
     created_date: datetime
+    pull_date: datetime
+    processing_time: timedelta
     attempt_count: int
-    stream: str
-    content: DataFrame
+    file_size: float
+    content: str
 
 @dataclass(slots=True)
-class SFDC_Report():
+class SfdcReport():
 
     report_id: str
     file_name: str
@@ -57,6 +57,5 @@ class SFDC_Report():
     processing_time: timedelta = timedelta(microseconds=0)
     attempt_count: int = 0
     file_size: float = 0.0
-    stream: str = ""
-    content: DataFrame = field(default_factory=DataFrame)
+    content: str = ""
     

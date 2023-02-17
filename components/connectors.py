@@ -1,18 +1,15 @@
 import asyncio
-import aiohttp
 import csv
+import aiohttp
 from datetime import datetime
-from multiprocessing.managers import ListProxy
-import os
-from typing import Any, Protocol, runtime_checkable
+from typing import Optional, Protocol, runtime_checkable
 import browser_cookie3
 import webbrowser
-import requests
 from time import sleep
-from io import StringIO
-import pandas as pd
 
-from components.containers import Report, SFDC_Report
+import requests
+
+from components.containers import Report, SfdcReport
 
 
 @runtime_checkable
@@ -45,33 +42,22 @@ class Connector(Protocol):
     def download(path: str)
     """
     
-    sid: str|None
     domain: str
     timeout: int
-    headers: dict[str, str]
-    export_params: str
-
-    def sid_interception(self) -> str|None:
-        ...
+    headers: dict[str, str]|None
+    export_params: str|None
+    reports: list[Optional[Report]] 
 
     def connection_check(self) -> bool:
         ...
 
     def report_request(self, report: Report) -> str|None:
         ...
-    
-    def save_to_csv(self, report: Report) -> str:
+        
+    def load_reports_list(self, report_directory):
         ...
     
-    @staticmethod
-    def load_reports_list(report_list, report_directory):
-        ...
-
-    @staticmethod    
-    def final_report(result_reports, final_report_path):
-        ...
-
-class SFDC_Connector():
+class SfdcConnector():
 
     def __init__(self,
         domain='',
@@ -80,15 +66,17 @@ class SFDC_Connector():
         timeout=900, 
         headers={'Content-Type': 'application/csv', 
                 'X-PrettyPrint': '1'}, 
-        export_params='?export=csv&enc=UTF-8&isdtp=p1'):
+        export_params='?export=csv&enc=UTF-8&isdtp=p1',
+        reports=[]):
         
         self.domain = domain
-        self.sid = self.sid_interception() if not sid else sid
+        self.sid = self._sid_interception() if not sid else sid
         self.timeout = timeout
         self.headers = headers
         self.export_params = export_params
+        self.reports = reports
 
-    def sid_interception(self):
+    def _sid_interception(self):
 
         try:
             cookie_jar = browser_cookie3.edge()
@@ -98,7 +86,7 @@ class SFDC_Connector():
         except:
             return None
 
-    def connection_check(self):
+    def connection_check(self) -> None:
         
         print(f'SID checking in progress ...')
 
@@ -111,7 +99,7 @@ class SFDC_Connector():
             
             sleep(30)
             while not self.sid:
-                self.sid = self.sid_interception()
+                self.sid = self._sid_interception()
                 print('intercepting SID! Hold on tight!')
                 sleep(2)
             
@@ -126,34 +114,24 @@ class SFDC_Connector():
         else:
             self.sid = None
         
-        return self.sid
+        return None
 
-    def report_request(self, report: SFDC_Report):
-        
-        report.created_date = datetime.now()
-        
-        report_url = self.domain + report.report_id + self.export_params
-
-        self.headers['Authorization'] = ''.join(filter(None, ['Bearer ', self.sid]))
-
-        response = requests.get(report_url, 
-                                headers=self.headers, 
-                                cookies={'sid': str(self.sid)},
-                                timeout=self.timeout,
-                                allow_redirects=False)
-
-        report.attempt_count += 1
-
-        if response.status_code != 200:
-            report.valid = False
-            return False
-        else:
-            report.stream = response.content.decode('utf-8')
-            report.valid = True
-            return report.stream
-
+    def load_reports(self, report_list: str, report_directory: str) -> None:
     
-    async def aio_report_request(self, report: SFDC_Report, session):
+        reports = {}
+        
+        with open(report_list) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            next(csv_reader)
+            
+            for row in csv_reader:
+                reports[row[0]] = row[1]
+        
+        self.reports = [SfdcReport(report_id=v, file_name=k, path=report_directory) for k, v in reports.items()]
+
+        return None
+
+    async def _report_request(self, report: SfdcReport, session) -> None:
         
         print(f'Starting {report.file_name}')
 
@@ -173,129 +151,20 @@ class SFDC_Connector():
 
             if r.status != 200:
                 report.valid = False
-                return False
             else:
-                report.stream = await r.text()
-                report.valid = True
+                report.content = await r.text()
                 print(f'Downloaded {report.file_name}')
-                return report.stream
+
+        return None
     
-    async def aio_report_request_all(self, reports: list[SFDC_Report], session):
+    async def _report_request_all(self, reports: list[SfdcReport], session) -> None:
         tasks = []
         for report in reports:
-            task = asyncio.create_task(self.aio_report_request(report, session))
+            task = asyncio.create_task(self._report_request(report, session))
             tasks.append(task)
         res = await asyncio.gather(*tasks)
         return res
     
-    async def aio_report_processing(self, reports: list[SFDC_Report]):
+    async def report_gathering(self, reports: list[SfdcReport]) -> None:
         async with aiohttp.ClientSession() as session:
-            responses = await self.aio_report_request_all(reports, session)
-        
-    def read_stream(self, report: SFDC_Report) -> tuple:
-        
-        report.content = pd.read_csv(StringIO(report.stream),   
-                                    dtype='string',
-                                    low_memory=False)
-
-        report.content = report.content.head(report.content.shape[0] -5)
-
-        return report.content.shape
-    
-    def save_to_csv(self, report: SFDC_Report) -> str:
-
-        file_path = f'{"/".join([str(report.path), report.file_name])}.csv'
-
-        report.content.to_csv(file_path,
-                            index=False)
-        
-        report.downloaded = True
-        report.pull_date = datetime.now()
-        
-        fsize = round((os.stat(file_path).st_size / (1024 * 1024)),1)
-        report.file_size = fsize
-
-        report.processing_time = report.pull_date - report.created_date
-
-        print('|', end='', flush=True)
-
-        return file_path
-
-    def erase_report(self, report: SFDC_Report) -> None:
-        report.stream = ""
-        report.content = pd.DataFrame()
-
-        return None    
-    
-    def aio_report_processing2(self, report: SFDC_Report, result_reports: list) -> None:
-    
-        while not report.valid:
-            try:
-                self.read_stream(report)
-                self.save_to_csv(report)
-                self.erase_report(report)
-            except pd.errors.EmptyDataError as e:
-                print(f'Timeout {report.file_name}, {report.attempt_count}')
-                report.valid = False
-                continue
-            except pd.errors.ParserError as e:
-                print(f'Unexpected end of stream {report.file_name}, {report.attempt_count}')
-                report.valid = False
-                continue
-            break
-            
-        result_reports.append(report)
-
-        return None
-
-
-    def report_processing(self, report: SFDC_Report, result_reports: list) -> None:
-    
-        while not report.valid:
-            try:
-                self.report_request(report)
-                self.read_stream(report)
-                self.save_to_csv(report)
-                self.erase_report(report)
-            except pd.errors.EmptyDataError as e:
-                print(f'Timeout {report.file_name}, {report.attempt_count}')
-                report.valid = False
-                continue
-            except pd.errors.ParserError as e:
-                print(f'Unexpected end of stream {report.file_name}, {report.attempt_count}')
-                report.valid = False
-                continue
-            break
-            
-        result_reports.append(report)
-
-        return None
-
-    @staticmethod
-    def load_reports_list(report_list: str, report_directory: str) -> list[SFDC_Report]:
-    
-        reports = {}
-        
-        with open(report_list) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            next(csv_reader)
-            
-            for row in csv_reader:
-                reports[row[0]] = row[1]
-        
-        return [SFDC_Report(report_id=v, file_name=k, path=report_directory) for k, v in reports.items()]
-
-    @staticmethod    
-    def final_report(result_reports, final_report_path: str) -> str:
-        header = ['file_name', 'report_id', 'type', 'valid', 'created_date', 'pull_date', 'processing_time', 'attempt_count', 'file_size'] 
-        
-        with open(str(final_report_path), 'w', encoding='UTF8', newline='') as f:
-            writer = csv.writer(f)
-
-            writer.writerow(header)
-
-            for report in result_reports:
-                writer.writerow([report.file_name, report.report_id, report.type, report.valid, report.created_date, 
-                                report.pull_date, report.processing_time, report.attempt_count, report.file_size])
-        
-        return final_report_path
+            responses = await self._report_request_all(reports, session)

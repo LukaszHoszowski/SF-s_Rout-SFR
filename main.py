@@ -1,38 +1,35 @@
 import asyncio
 import os
-from dotenv import load_dotenv
-from multiprocessing import Pool, Manager
 
-from components.connectors import SFDC_Connector
-from components.internals import loading_cli_arguments
-from components.report_excpetions import EnvFileNotPresent
+from components.connectors import SfdcConnector
+
+from components.file_handler import FileSaveHandler
+from components.internals import load_cli_arguments, load_env_file
 
 
 if __name__ == '__main__':
 
-    try:
-        load_dotenv()
-    except EnvFileNotPresent:
-        print('.env file missing')
+    load_env_file()
 
-    abs_path, report_list, report_directory = loading_cli_arguments()
+    abs_path, report_list, report_directory = load_cli_arguments()
 
-    final_report_path = abs_path + str(os.getenv("FINAL_REPORT_PATH"))
+    summary_report_path = abs_path + str(os.getenv("FINAL_REPORT_PATH"))
     domain = str(os.getenv("SFDC_DOMAIN"))
 
-    connector = SFDC_Connector(domain=domain)
+    connector = SfdcConnector(domain=domain)
     connector.connection_check()
 
-    reports = connector.load_reports_list(report_list, report_directory)
+    connector.load_reports(report_list, report_directory)
 
-    asyncio.run(connector.aio_report_processing(reports))
+    file_handler = FileSaveHandler(connector.reports)
 
-    for report in reports:
-        connector.read_stream(report)
-        connector.save_to_csv(report)
-        connector.erase_report(report)
+    asyncio.run(connector.report_gathering(connector.reports))
+
+    for report in connector.reports:
+        file_handler._save_to_csv(report)
+        file_handler._erase_report(report)
     
-    
+    file_handler.summary_report(summary_report_path)
     
     # with Manager() as manager:
         
