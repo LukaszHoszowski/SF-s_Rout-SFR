@@ -8,3 +8,4 @@ downloader_env/
 exec/
 /.env
 /logs/*
+!/logs/.gitkeep
