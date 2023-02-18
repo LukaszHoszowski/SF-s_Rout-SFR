@@ -1,7 +1,14 @@
-from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
+import csv
+from dataclasses import dataclass, field
+import logging
+from os import PathLike
+from pathlib import Path
+from typing import Generator, Protocol, runtime_checkable
 from datetime import datetime, timedelta
 
+from pandas import DataFrame
+
+logger_main = logging.getLogger(__name__)
 
 @runtime_checkable
 class Report(Protocol):
@@ -30,8 +37,8 @@ class Report(Protocol):
         how many time bot was trying to request the report
     """
 
-    report_id: str
-    file_name: str
+    id: str
+    name: str
     type: str
     path: str|None
     downloaded: bool
@@ -40,22 +47,98 @@ class Report(Protocol):
     pull_date: datetime
     processing_time: timedelta
     attempt_count: int
-    file_size: float
-    content: str
+    size: float
+    response: str
+    content: DataFrame
+
+@runtime_checkable
+class Container(Protocol):
+    """
+    A Protocol class as a scaffold for report objects.
+    
+    ...
+    
+    Attributes
+    ----------
+    report_id: str
+        report id from the system
+    """
+
+    report_list: list
+
+    def create_reports(self) -> list[Report]:
+        ...
 
 @dataclass(slots=True)
 class SfdcReport():
 
-    report_id: str
-    file_name: str
-    type: str = "SFDC"
-    path: str|None = None
+    type: str 
+    name: str
+    id: str
+    path: PathLike
     downloaded: bool = False
     valid: bool = False
     created_date: datetime = datetime.now()
     pull_date: datetime = datetime.now()
     processing_time: timedelta = timedelta(microseconds=0)
     attempt_count: int = 0
-    file_size: float = 0.0
-    content: str = ""
+    size: float = 0.0
+    response: str = ""
+    content: DataFrame = field(default_factory=DataFrame)
+
+
+class ReportContainer():
+    def __init__(self, 
+                report_list_path: Path,
+                summary_report_path: Path,
+                report_params=[dict()], 
+                report_list=[]):
+        
+        self.report_list_path = report_list_path
+        self.summary_report_path = summary_report_path
+        self.report_params = report_params
+        self.report_list = report_list
+        
+    def _parse_input_report_csv(self) -> list[dict]:
+        
+        logger_main.debug("Parsing input reports")
+        keys = ['type', 'name', 'id', 'path']
+        
+        with open(self.report_list_path) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            next(csv_reader)
+
+            report_params = [dict(zip(keys, values)) for values in csv_reader]
+
+        logger_main.debug("Input reports successfully generated")
+        
+        return report_params
+
+    def _create_sfdc_reports(self) -> Generator:
+        
+        reports = (SfdcReport(**kwargs) for kwargs in self._parse_input_report_csv())
+
+        return reports
+    
+    def create_reports(self) -> list[Report]:
+        
+        self.report_list = list(self._create_sfdc_reports())
+
+        return self.report_list
+    
+    def create_summary_report(self) -> None:
+        logger_main.debug("Creating summary report, saved in %s", self.summary_report_path)
+        
+        header = ['file_name', 'report_id', 'type', 'valid', 'created_date', 'pull_date', 'processing_time', 'attempt_count', 'file_size'] 
+        
+        with open(self.summary_report_path, 'w', encoding='UTF8', newline='') as f:
+            writer = csv.writer(f)
+
+            writer.writerow(header)
+
+            for report in self.report_list:
+                writer.writerow([report.name, report.id, report.type, report.valid, report.created_date, 
+                                report.pull_date, report.processing_time, report.attempt_count, report.size])
+        
+        return None
     

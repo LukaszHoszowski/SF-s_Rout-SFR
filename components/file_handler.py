@@ -1,10 +1,15 @@
-import csv
 from datetime import datetime
+from io import StringIO
+import logging
 import os
+from threading import Thread, current_thread, get_ident
 from typing import Optional, Protocol, runtime_checkable
+import pandas as pd
 
 from components.containers import Report
 
+
+logger_main = logging.getLogger(__name__)
 
 @runtime_checkable
 class SaveHandler(Protocol):
@@ -45,55 +50,86 @@ class SaveHandler(Protocol):
         ...
 
 
-class FileSaveHandler():
 
-    def __init__(self, reports):
-        self.reports = reports
-    
-    def _save_to_csv(self, report: Report) -> None:
-    
-        file_path = f'{"/".join([str(report.path), report.file_name])}.csv'
+class FileSaveHandler(Thread):
 
-        with open(file_path, 'w', encoding='UTF-8') as file:
-            writer = csv.writer(file, quotechar='\'', escapechar='\\', doublequote=False, skipinitialspace=True, quoting=csv.QUOTE_MINIMAL) 
-            
-            for line in report.content.split('\n')[:-7]:
-                writer.writerow([line])
+    def __init__(self, queue):
+        Thread.__init__(self)
+        self.queue = queue
 
-        report.downloaded = True
-        report.pull_date = datetime.now()
+
+    def _read_stream(self, report: Report) -> None:
         
-        fsize = round((os.stat(file_path).st_size / (1024 * 1024)),1)
-        report.file_size = fsize
+        logger_main.debug('Reading content of %s', report.name)
+        df = pd.read_csv(StringIO(report.response),   
+                                    dtype='string',
+                                    low_memory=False)
 
-        report.processing_time = report.pull_date - report.created_date
-
-        print('|', end='', flush=True)
+        logger_main.debug('Removing last 5 lines, footer of %s', report.name)
+        report.content = df.head(df.shape[0] -5)
 
         return None
+    
+    def _save_to_csv(self, report: Report) -> None:
+
+        file_path = f'{"/".join([str(report.path), report.name])}.csv'
+        logger_main.debug('Parsing path for %s -> %s', report.name, file_path)
+
+        logger_main.debug('%s is saving file for %s -> %s', current_thread().name, report.name, file_path)
+        report.content.to_csv(file_path,
+                            index=False)
+        
+        logger_main.debug('%s saved %s -> %s', current_thread().name, report.name, file_path)
+        report.downloaded = True
+        
+        report.pull_date = datetime.now()
+        report.size = round((os.stat(file_path).st_size / (1024 * 1024)),1)
+        report.processing_time = report.pull_date - report.created_date
+
+        logger_main.debug('%s succesfully saved by %s at report.pull_date, operation took: %s, file size: %s', 
+                          report.name, current_thread().name, report.processing_time, report.size)
+        
+        return None    
 
     def _erase_report(self, report: Report) -> None:
-        report.content = ""
+        
+        logger_main.debug('Deleting response and content for %s', report.name)
+        report.response = ""
+        report.content = pd.DataFrame()
 
         return None    
     
-    def _report_processing(self, report: Report) -> None:
+    def report_processing(self, report: Report) -> None:
+        
         while not report.valid:
-            self._save_to_csv(report)
-            self._erase_report(report)
+            try:
+                self._read_stream(report)
+                self._save_to_csv(report)
+                self._erase_report(report)
+            except pd.errors.EmptyDataError as e:
+                logger_main.warning('%s timeouted, attmpts: %s',report.name, report.attempt_count)
+                report.valid = False
+                continue
+            except pd.errors.ParserError as e:
+                logger_main.warning('%s unexpected end of stream: %s',report.name, report.attempt_count)
+                report.valid = False
+                continue
+            break
+        
             
         return None
-    
-    def summary_report(self, final_report_path: str) -> None:
-        header = ['file_name', 'report_id', 'type', 'valid', 'created_date', 'pull_date', 'processing_time', 'attempt_count', 'file_size'] 
-        
-        with open(str(final_report_path), 'w', encoding='UTF8', newline='') as f:
-            writer = csv.writer(f)
 
-            writer.writerow(header)
-
-            for report in self.reports:
-                writer.writerow([report.file_name, report.report_id, report.type, report.valid, report.created_date, 
-                                report.pull_date, report.processing_time, report.attempt_count, report.file_size])
+    def run(self):
         
-        return None
+        logger_main.debug('%s starting', current_thread().name)
+        while True:
+            report = self.queue.get()
+            if report:
+                
+                logger_main.debug('%s processing %s', current_thread().name, report.name)
+                try:
+                    report.id
+                    self.report_processing(report)
+                finally:
+                    logger_main.debug('%s finishing %s', current_thread().name, report.name)
+                    self.queue.task_done()

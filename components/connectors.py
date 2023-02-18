@@ -1,5 +1,6 @@
 import asyncio
-import csv
+import logging
+from queue import Queue
 import aiohttp
 from datetime import datetime
 from typing import Optional, Protocol, runtime_checkable
@@ -8,9 +9,12 @@ import webbrowser
 from time import sleep
 
 import requests
+from tqdm.asyncio import tqdm
 
 from components.containers import Report, SfdcReport
 
+
+logger_main = logging.getLogger(__name__)
 
 @runtime_checkable
 class Connector(Protocol):
@@ -43,6 +47,7 @@ class Connector(Protocol):
     """
     
     domain: str
+    queue: Queue
     timeout: int
     headers: dict[str, str]|None
     export_params: str|None
@@ -60,87 +65,80 @@ class Connector(Protocol):
 class SfdcConnector():
 
     def __init__(self,
-        domain='',
+        
+        domain,
+        queue,
         *,
         sid=None,
         timeout=900, 
         headers={'Content-Type': 'application/csv', 
                 'X-PrettyPrint': '1'}, 
-        export_params='?export=csv&enc=UTF-8&isdtp=p1',
-        reports=[]):
-        
+        export_params='?export=csv&enc=UTF-8&isdtp=p1'):
+
         self.domain = domain
+        self.queue = queue
         self.sid = self._sid_interception() if not sid else sid
         self.timeout = timeout
         self.headers = headers
         self.export_params = export_params
-        self.reports = reports
 
-    def _sid_interception(self):
-
+    def _sid_interception(self) -> str|None:
+        
+        logger_main.info('SID interception started')
         try:
+            logger_main.debug("Trying to access MS Edge's CookieJar")
             cookie_jar = browser_cookie3.edge()
+            logger_main.debug("Parsing domain key for cookies")
             domain = self.domain.replace('https://', '').replace('/','')
+            logger_main.debug("Retrieving SID entry from CookieJar")
             sid = [cookie.value for cookie in cookie_jar if cookie.name == 'sid' and cookie.domain == domain]
-            return sid[0] if sid else None
+            return sid[0] or None
         except:
+            logger_main.error("Coudn't retrieve SID entry")
             return None
 
     def connection_check(self) -> None:
         
-        print(f'SID checking in progress ...')
+        logger_main.info("SID checking in progress ...")
 
         while not self.sid:
-            print('SID not found! -> Login to SFDC -> SalesForce webpage will open shortly.')
+            logger_main.warning('SID not found! -> Login to SFDC -> SalesForce webpage will open shortly')
             sleep(2)
             
             edge_path = '"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe" --profile-directory=Default %s'
+            logger_main.debug('Openning SFDC webside to log in to SalesForce')
             webbrowser.get(edge_path).open(self.domain)
             
+            logger_main.debug("Starting 30 sec sleep to let user log in to SalesForce")
             sleep(30)
             while not self.sid:
                 self.sid = self._sid_interception()
-                print('intercepting SID! Hold on tight!')
+                logger_main.info('intercepting SID! Hold on tight!')
                 sleep(2)
             
-        print(f'SID found!')
+        logger_main.info('SID found!')
 
-        self.headers['Authorization'] = 'Bearer ' + self.sid
+        logger_main.debug("Parsing headers for SFDC request check")
+        self.headers['Authorization'] = ''.join(filter(None, ['Bearer ', self.sid]))
+        logger_main.debug("Checking SID validity")
         response = requests.get(self.domain, 
                                 cookies={'sid': self.sid},
                                 allow_redirects=True)
         if response.headers['Cache-Control'] == 'private':
-            print('SID ok!')
+            logger_main.info('SID ok!')
         else:
+            logger_main.critical('SID not ok!!!')
             self.sid = None
         
         return None
 
-    def load_reports(self, report_list: str, report_directory: str) -> None:
-    
-        reports = {}
-        
-        with open(report_list) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            next(csv_reader)
-            
-            for row in csv_reader:
-                reports[row[0]] = row[1]
-        
-        self.reports = [SfdcReport(report_id=v, file_name=k, path=report_directory) for k, v in reports.items()]
-
-        return None
-
     async def _report_request(self, report: SfdcReport, session) -> None:
-        
-        print(f'Starting {report.file_name}')
 
         report.created_date = datetime.now()
         
-        report_url = self.domain + report.report_id + self.export_params
+        report_url = self.domain + report.id + self.export_params
 
-        self.headers['Authorization'] = ''.join(filter(None, ['Bearer ', self.sid]))
-
+        logger_main.debug("Sending asynchronous report request with params: %s, %s", report_url, self.headers)
         async with session.get(report_url, 
                                 headers=self.headers, 
                                 cookies={'sid': str(self.sid)},
@@ -150,21 +148,39 @@ class SfdcConnector():
             report.attempt_count += 1
 
             if r.status != 200:
+                logger_main.warning("%s invalid, check ID, is SFDC alive", report.name)
                 report.valid = False
             else:
-                report.content = await r.text()
-                print(f'Downloaded {report.file_name}')
-
+                logger_main.debug("%s -> Request successful, retrievieng content", report.name)
+                report.response = await r.text()
+                report.valid = True
+                logger_main.debug("Sending the content to the queue for processing, %s elements in the queue before transfer", self.queue.qsize())
+                self.queue.put(report)
+                logger_main.info('%s succesfuly downloaded and put to the queue', report.name)
+        
         return None
     
     async def _report_request_all(self, reports: list[SfdcReport], session) -> None:
+        
+        # [await task_ for task_ in tqdm.as_completed(tasks, total=len(tasks))]
+
         tasks = []
+
+        logger_main.debug("Creating tasks for asynchronous processing")
         for report in reports:
             task = asyncio.create_task(self._report_request(report, session))
             tasks.append(task)
-        res = await asyncio.gather(*tasks)
-        return res
+
+        _ = [await task_ for task_ in tqdm.as_completed(tasks, total=len(tasks))]
+
+        await asyncio.gather(*tasks)
+        
+        return None
     
     async def report_gathering(self, reports: list[SfdcReport]) -> None:
+
+        logger_main.debug("Awaiting content")
         async with aiohttp.ClientSession() as session:
-            responses = await self._report_request_all(reports, session)
+            await self._report_request_all(reports, session)
+
+        return None

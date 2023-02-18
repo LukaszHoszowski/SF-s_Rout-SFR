@@ -7,3 +7,4 @@ downloader_env/
 !/input/sfdc_reports-default.csv
 exec/
 /.env
+/logs/*

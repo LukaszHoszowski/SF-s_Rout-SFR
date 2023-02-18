@@ -1,76 +1,53 @@
 import asyncio
+import logging
 import os
+from queue import Queue
+import time
 
 from components.connectors import SfdcConnector
-
+from components.containers import ReportContainer
 from components.file_handler import FileSaveHandler
-from components.internals import load_cli_arguments, load_env_file
+from components.internals import load_params, load_env_file
+from components.logs import logger_configurer
 
 
 if __name__ == '__main__':
 
+    t0 = time.time()
+    
+    logger_main = logging.getLogger(__name__)
+    logger_configurer()
+    logger_main.info('SFR started, mode: %s', t0)
+
     load_env_file()
 
-    abs_path, report_list, report_directory = load_cli_arguments()
+    report_list_path, report_directory, summary_report_path = load_params()
 
-    summary_report_path = abs_path + str(os.getenv("FINAL_REPORT_PATH"))
+    queue = Queue()
+
     domain = str(os.getenv("SFDC_DOMAIN"))
+    log_level = str(os.getenv("LOGGING_LEVEL"))
 
-    connector = SfdcConnector(domain=domain)
+    connector = SfdcConnector(domain, queue)
+    container = ReportContainer(report_list_path, summary_report_path)
+
     connector.connection_check()
-
-    connector.load_reports(report_list, report_directory)
-
-    file_handler = FileSaveHandler(connector.reports)
-
-    asyncio.run(connector.report_gathering(connector.reports))
-
-    for report in connector.reports:
-        file_handler._save_to_csv(report)
-        file_handler._erase_report(report)
+    container.create_reports()
     
-    file_handler.summary_report(summary_report_path)
+    num_of_workers = int((os.cpu_count() or 4) / 2)
+
+    for _ in range(num_of_workers):
+        worker = FileSaveHandler(queue)
+        worker.name = f'Slave-{_}'
+        worker.daemon = True
+        worker.start()
     
-    # with Manager() as manager:
-        
-    #     print("")
+    asyncio.run(connector.report_gathering(container.report_list))
 
-    #     try:
-    #         load_dotenv()
-    #     except EnvFileNotPresent:
-    #         print('.env file missing')
+    queue.join()
 
-    #     abs_path, report_list, report_directory = loading_cli_arguments()
+    t1 = time.time()
 
-    #     final_report_path = abs_path + str(os.getenv("FINAL_REPORT_PATH"))
-    #     domain = str(os.getenv("SFDC_DOMAIN"))
+    print(t1 - t0)
 
-    #     connector = SFDC_Connector(domain=domain)
-    #     connector.connection_check()
-
-    #     reports = connector.load_reports_list(report_list, report_directory)
-
-    #     result_reports = manager.list()
-
-    #     pool = Pool(processes=len(reports))
-
-    #     print("")
-    #     print(f'Processing of {len(reports)} reports started')
-    #     print(" ")
-    #     print(f'0% [{len(reports) * " "}] 100%')
-    #     print("    ", end='', flush=True)
-
-    #     pool.starmap(connector.report_processing, [(report, result_reports) for report in reports])
-        
-    #     print(" ")
-    #     print(" ")
-        
-    #     pool.close()
-    #     pool.join()
-
-    #     for report in result_reports:
-    #         print(f'{report.file_name:<40} attempts: {report.attempt_count:>2}, size: {report.file_size:<5} Mb, time: {report.processing_time}')
-
-    #     connector.final_report(result_reports, final_report_path)
-
-    #     print(f'\nEnd of processing - {len(result_reports)} reports processed successfully')
+    container.create_summary_report()
