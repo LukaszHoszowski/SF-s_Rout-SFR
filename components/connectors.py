@@ -139,30 +139,30 @@ class SfdcConnector():
         report_url = self.domain + report.id + self.export_params
 
         logger_main.debug("Sending asynchronous report request with params: %s, %s", report_url, self.headers)
-        async with session.get(report_url, 
-                                headers=self.headers, 
-                                cookies={'sid': str(self.sid)},
-                                timeout=self.timeout,
-                                allow_redirects=True) as r:
+        
+        while not report.valid:
+            async with session.get(report_url, 
+                                    headers=self.headers, 
+                                    cookies={'sid': str(self.sid)},
+                                    timeout=self.timeout,
+                                    allow_redirects=True) as r:
 
-            report.attempt_count += 1
+                report.attempt_count += 1
 
-            if r.status != 200:
-                logger_main.warning("%s invalid, check ID, is SFDC alive", report.name)
-                report.valid = False
-            else:
-                logger_main.debug("%s -> Request successful, retrievieng content", report.name)
-                report.response = await r.text()
-                report.valid = True
-                logger_main.debug("Sending the content to the queue for processing, %s elements in the queue before transfer", self.queue.qsize())
-                self.queue.put(report)
-                logger_main.info('%s succesfuly downloaded and put to the queue', report.name)
+                if r.status != 200:
+                    logger_main.warning("%s invalid, check ID, is SFDC alive", report.name)
+                    report.valid = False
+                else:
+                    logger_main.debug("%s -> Request successful, retrievieng content", report.name)
+                    report.response = await r.text()
+                    report.valid = True
+                    logger_main.debug("Sending the content to the queue for processing, %s elements in the queue before transfer", self.queue.qsize())
+                    self.queue.put(report)
+                    logger_main.debug('%s succesfuly downloaded and put to the queue', report.name)
         
         return None
     
     async def _report_request_all(self, reports: list[SfdcReport], session) -> None:
-        
-        # [await task_ for task_ in tqdm.as_completed(tasks, total=len(tasks))]
 
         tasks = []
 
@@ -180,7 +180,8 @@ class SfdcConnector():
     async def report_gathering(self, reports: list[SfdcReport]) -> None:
 
         logger_main.debug("Awaiting content")
-        async with aiohttp.ClientSession() as session:
+        timeout = aiohttp.ClientTimeout(total=1_800)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             await self._report_request_all(reports, session)
 
         return None

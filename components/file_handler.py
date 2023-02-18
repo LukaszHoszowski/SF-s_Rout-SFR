@@ -101,22 +101,21 @@ class FileSaveHandler(Thread):
     
     def report_processing(self, report: Report) -> None:
         
-        while not report.valid:
+        if report.valid:
             try:
                 self._read_stream(report)
                 self._save_to_csv(report)
                 self._erase_report(report)
+                
             except pd.errors.EmptyDataError as e:
                 logger_main.warning('%s timeouted, attmpts: %s',report.name, report.attempt_count)
-                report.valid = False
-                continue
+                report.downloaded = False
+            
             except pd.errors.ParserError as e:
                 logger_main.warning('%s unexpected end of stream: %s',report.name, report.attempt_count)
-                report.valid = False
-                continue
-            break
-        
-            
+                report.downloaded = False
+        else:
+            report.downloaded = True
         return None
 
     def run(self):

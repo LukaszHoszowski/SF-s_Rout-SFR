@@ -16,10 +16,9 @@ def logger_configurer() -> None:
     formatter = logging.Formatter('%(asctime)-20s| %(levelname)-8s| %(processName)-12s| '
                                   '%(message)s', '%Y-%m-%d %H:%M:%S')
     handler_f.setFormatter(formatter)
+    handler_f.setLevel(logging.DEBUG)
     handler_s.setFormatter(formatter)
-    
+    handler_s.setLevel(logging.WARNING)
+
     root.addHandler(handler_f)
     root.addHandler(handler_s)
-
-    root.setLevel(logging.INFO)
-    

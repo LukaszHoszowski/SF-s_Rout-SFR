@@ -17,7 +17,7 @@ if __name__ == '__main__':
     
     logger_main = logging.getLogger(__name__)
     logger_configurer()
-    logger_main.info('SFR started, mode: %s', t0)
+    logger_main.info('SFR started')
 
     load_env_file()
 
@@ -48,6 +48,7 @@ if __name__ == '__main__':
 
     t1 = time.time()
 
-    print(t1 - t0)
-
     container.create_summary_report()
+
+    logger_main.info('SFR finished %s in %s', container.report_list, t1 - t0)
+    
