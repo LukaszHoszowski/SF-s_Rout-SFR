@@ -26,7 +26,6 @@ if __name__ == '__main__':
     queue = Queue()
 
     domain = str(os.getenv("SFDC_DOMAIN"))
-    log_level = str(os.getenv("LOGGING_LEVEL"))
 
     connector = SfdcConnector(domain, queue)
     container = ReportContainer(report_list_path, summary_report_path)
@@ -36,9 +35,9 @@ if __name__ == '__main__':
     
     num_of_workers = int((os.cpu_count() or 4) / 2)
 
-    for _ in range(num_of_workers):
+    for num in range(num_of_workers):
         worker = FileSaveHandler(queue)
-        worker.name = f'Slave-{_}'
+        worker.name = f'Slave-{num}'
         worker.daemon = True
         worker.start()
     
@@ -50,5 +49,4 @@ if __name__ == '__main__':
 
     container.create_summary_report()
 
-    logger_main.info('SFR finished %s in %s', container.report_list, t1 - t0)
-    
+    logger_main.info('SFR finished in %s', (t1 - t0))
