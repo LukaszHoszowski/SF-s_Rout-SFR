@@ -4,8 +4,9 @@ downloader_env/
 /reports/*
 !/reports/.gitkeep
 /input/*
-!/input/sfdc_reports-default.csv
+!/input/reports-default.csv
 exec/
 /.env
 /logs/*
 !/logs/.gitkeep
+.gitkeep
