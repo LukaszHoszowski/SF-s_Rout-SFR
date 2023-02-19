@@ -1,1 +1,2 @@
-file_name,report_id
+report_type,report_file_name,report_id,report_path
+SFDC,Name_of_the_report_also-the_file_name,15-char__report_id_from_SFDC,C:\absolute\path\to\your\download\foolder
