@@ -54,7 +54,7 @@ Once you run `main.py`:
 7) workers keep on listen for items in the queue
 8) once queue is not empty some worker will take the item and start processing
 9) once all the request are fulfilled queue will close and send signals to workers to shutdown once they finish their last job
-10 creating summary report and saved to **./input/reports.csv**
+10) creating summary report and saved to **./input/reports.csv**
 
 ## Limitations
 
