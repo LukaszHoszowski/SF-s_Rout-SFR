@@ -152,11 +152,15 @@ class SfdcConnector():
                     report.valid = False
                 else:
                     logger_main.debug("%s -> Request successful, retrievieng content", report.name)
-                    report.response = await r.text()
-                    report.valid = True
-                    logger_main.debug("Sending the content to the queue for processing, %s elements in the queue before transfer", self.queue.qsize())
-                    self.queue.put(report)
-                    logger_main.debug('%s succesfuly downloaded and put to the queue', report.name)
+                    try:
+                        report.response = await r.text()
+                        report.valid = True
+                        logger_main.debug("Sending the content to the queue for processing, %s elements in the queue before transfer", self.queue.qsize())
+                        self.queue.put(report)
+                        logger_main.debug('%s succesfuly downloaded and put to the queue', report.name)
+                    except aiohttp.ClientPayloadError as e:
+                        logger_main.warning('%s result unexpected end of stream', report.name)
+                        continue
         
         return None
     

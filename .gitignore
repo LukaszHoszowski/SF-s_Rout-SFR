@@ -10,3 +10,4 @@ exec/
 /logs/*
 !/logs/.gitkeep
 .gitkeep
+main.bat

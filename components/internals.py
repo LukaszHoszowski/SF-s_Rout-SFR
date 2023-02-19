@@ -27,16 +27,9 @@ def load_params() -> tuple[Path, Path]:
     else:
         logger_main.debug('Parsing absolute path for Input parameter')
         report_list = os.path.abspath(str(os.getenv("REPORT_LIST_PATH")))
-
-    # if cli_path_output:
-    #     logger_main.debug('Assigning Output CLI parameter')
-    #     report_directory = cli_path_output
-    # else:
-    #     logger_main.debug('Parsing absolute path for Output parameter')
-    #     report_directory = os.path.abspath(str(os.getenv("REPORT_DIRECTORY")))
         
     logger_main.debug('Parsing absolute path for Summary_report_path parameter')
-    summary_report_path = os.path.join(os.path.abspath(__file__), '..', '..', str(os.getenv("SUMMARY_REPORT_PATH")))
+    summary_report_path = os.path.abspath(str(os.getenv("SUMMARY_REPORT_PATH")))
      
     logger_main.debug('Transforming paths into Path objects')
     paths = tuple(map(lambda path: Path(path), (report_list, summary_report_path)))
