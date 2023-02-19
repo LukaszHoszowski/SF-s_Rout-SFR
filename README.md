@@ -1,13 +1,11 @@
-## SF's Rout (SFR) - Report Downloader
-------
+# SF's Rout (SFR) - Report Downloader
 
 ## What is it?
-------
 
 **SFR** is a report downloader. In current form supports **SFDC** reports. The app allows you to download reports based on their ID using your personal SFDC account. Supports asynchronous requests, threaded processing of the files, logging to rotating file and stdout, produces summary report for the session. 
 
 ## Installation
-------
+
 
 - navigate to some convenient folder
 
@@ -45,7 +43,6 @@ pip install -r requirements.txt
 - run main.py
 
 ## How the program works
-------
 
 Once you run `main.py`:
 
@@ -61,7 +58,6 @@ Once you run `main.py`:
 10) creating summary report and saved to **./input/reports.csv**
 
 ## Connectors
-------
 
 At the moment the app supports only one type of reports -> SFDC
 
@@ -86,7 +82,7 @@ Thread based solution for saving request responses to a file. At the moment only
 File handler spawns workers in separate threads. Number of workers is equal to half of available threads on your machine (e.g. if your cpu has 6 cores and 12 threads SFR will spawn 6 workers). If information about available resources is not reachable it will default to **2**. Such approach will not dramatically slow down other applications on your computer and will secure required resources for SFR. Each worker will observe `Queue`, if something will be put into `Queue` one of the workers will start processing of the report. `Queue` size in unlimited so sooner or later workers will handle entire workload. Workers will die once `Queue` will send signal that they shouldn't expect any new items. These workers who are just processing items will finish their job and die quietly. Once all the items are processed summary report will be produced.
 
 ## Limitations
-------
+
 - **Caution!** SFR deletes last 5 lines from each response, SFDC adds footer to each data stream. This maight be organization specific and require your attention if you plan to use it other organizations.
 
 - by default queue is not limited
@@ -100,7 +96,6 @@ File handler spawns workers in separate threads. Number of workers is equal to h
 - currently only save to CSV method is available
 
 ## Benchmarks
-------
 
 My testing set consist of 33 reports from various universes of SFDC with size between 200 kb to 200 mb. In total 1.4 gb of data.
 
@@ -109,16 +104,15 @@ Tests were not bounded by network bandwidth, at least on my side. Tests were eva
 Processing of the testing set vary between 3 and 8 minutes, results strongly correlate to SFDC performance on given time. Time of processing is correlated to size of the report.
 
 ## Final remarks
-------
 
 This app has been created based on environment of my organization. There is alternative way of Authenticating to SFDC based on security token, unfortunately this option was blocked in my organization and only SSO is available. 
 
 Program has been created as efficient tool which can be hosted on relatively weak machine with limited resources. I current revision I've decreased memory footprint and distribute resources more accurately.
 
 ## Release Notes
-------
+
 [CHANGELOG](CHANGELOG.md)
 
 ## License
-------
+
 [Apache 2.0](LICENSE.md)
