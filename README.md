@@ -9,6 +9,10 @@
 
 - navigate to some convenient folder
 
+```sh
+cd c:/path/to/sfr
+```
+
 - clone the repo
 
 ```sh
@@ -41,6 +45,33 @@ pip install -r requirements.txt
 - configure config files **./input/reports.csv** and **./.env**
 
 - run main.py
+
+```sh
+python main.py
+```
+
+or 
+
+```sh
+python3 main.py
+```
+
+alternatively you can run main with parameter:
+
+```sh
+main.py "C:\sfr\input\reports.csv""
+```
+
+This application has been created this way that you can add this as a task to your Windows Task Schduler.
+
+Create a name.bat file and save it with below script
+
+```sh
+"C:\path\to\new\virtual\environment\Scripts\python.exe" "C:\path\to\clonned\repo\main.py" "C:\path\to\input\reports.csv"
+pause
+```
+
+Test it, if works create a task and set some schedule
 
 ## How the program works
 

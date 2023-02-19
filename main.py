@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import asyncio
 import logging
 import os
@@ -21,7 +23,7 @@ if __name__ == '__main__':
 
     load_env_file()
 
-    report_list_path, report_directory, summary_report_path = load_params()
+    report_list_path, summary_report_path = load_params()
 
     queue = Queue()
 

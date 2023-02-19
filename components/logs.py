@@ -1,5 +1,6 @@
 import logging
 import logging.handlers
+import os
 
 
 def logger_configurer() -> None:
@@ -12,8 +13,9 @@ def logger_configurer() -> None:
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    handler_f = logging.handlers.RotatingFileHandler('./logs/sfr.log', 'a',
-                                                   1_000_000, 3)
+    log_path = os.path.join(os.path.abspath(__file__), '..', '..', './logs/sfr.log')
+
+    handler_f = logging.handlers.RotatingFileHandler(log_path, 'a', 1_000_000, 3)
     handler_s = logging.StreamHandler()
     handler_s.setLevel(logging.WARNING)
     formatter = logging.Formatter('%(asctime)-20s| %(levelname)-8s| %(processName)-12s| '
