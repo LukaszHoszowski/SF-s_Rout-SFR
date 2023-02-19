@@ -28,7 +28,7 @@ python -m venv /path/to/new/virtual/environment
 
 for Windows:
 ```sh
-/path/to/new/virtual/environment\Scripts\activate.bat
+c:\path\to\new\virtual\environment\Scripts\activate.bat
 ```
 
 for Unix
@@ -59,7 +59,7 @@ python3 main.py
 alternatively you can run main with parameter:
 
 ```sh
-main.py "C:\sfr\input\reports.csv""
+main.py "c:\sfr\input\reports.csv""
 ```
 
 This application has been created this way that you can add this as a task to your Windows Task Schduler.
@@ -67,7 +67,7 @@ This application has been created this way that you can add this as a task to yo
 Create a name.bat file and save it with below script
 
 ```sh
-"C:\path\to\new\virtual\environment\Scripts\python.exe" "C:\path\to\clonned\repo\main.py" "C:\path\to\input\reports.csv"
+"c:\path\to\new\virtual\environment\Scripts\python.exe" "c:\path\to\clonned\repo\main.py" "c:\path\to\input\reports.csv"
 pause
 ```
 
