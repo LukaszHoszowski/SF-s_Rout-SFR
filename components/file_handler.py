@@ -86,8 +86,8 @@ class FileSaveHandler(Thread):
         report.size = round((os.stat(file_path).st_size / (1024 * 1024)),1)
         report.processing_time = report.pull_date - report.created_date
 
-        logger_main.debug('%s succesfully saved by %s at report.pull_date, operation took: %s, file size: %s', 
-                          report.name, current_thread().name, report.processing_time, report.size)
+        logger_main.debug('%s succesfully saved by %s at %s, operation took: %s, file size: %s', 
+                          report.name, current_thread().name, report.pull_date, report.processing_time, report.size)
         
         return None    
 

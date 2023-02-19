@@ -37,10 +37,10 @@ class Report(Protocol):
         how many time bot was trying to request the report
     """
 
-    id: str
+    type: str 
     name: str
-    type: str
-    path: str|None
+    id: str
+    path: PathLike
     downloaded: bool
     valid: bool
     created_date: datetime

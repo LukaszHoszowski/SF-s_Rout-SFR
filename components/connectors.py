@@ -3,7 +3,7 @@ import logging
 from queue import Queue
 import aiohttp
 from datetime import datetime
-from typing import Optional, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 import browser_cookie3
 import webbrowser
 from time import sleep
@@ -25,41 +25,38 @@ class Connector(Protocol):
     
     Attributes
     ----------
-    sid: str
-        session id
     domain: str
-        system domain address
+        sfdc domain -> "https://<your_org>.com/"
+    queue: Quoue
+        instance of Queue for report sharing
     timeout: int
         request timeout in seconds
-    headers: dict
-        system required headers
+    headers: dict[str, str]
+        required request headers
     export_params: str
         additional export parameters
     report: str
         report container
 
-    Attributes
+    Methods
     ----------    
-    send_request():
-        ...
+    def connection_check(self) -> bool:
+        returns True is connection was succesful, False if wasn't able to establish the connection
     
-    def download(path: str)
+    def report_gathering(self, reports: list[Report], session: aiohttp.ClientSession) -> None:
+        sends requests asynchronously to given domain and save them inside report objects
     """
     
     domain: str
     queue: Queue
     timeout: int
-    headers: dict[str, str]|None
-    export_params: str|None
-    reports: list[Optional[Report]] 
+    headers: dict[str, str]
+    export_params: str
 
     def connection_check(self) -> bool:
         ...
 
-    def report_request(self, report: Report) -> str|None:
-        ...
-        
-    def load_reports_list(self, report_directory):
+    def report_gathering(self, reports: list[Report], session: aiohttp.ClientSession) -> None:
         ...
     
 class SfdcConnector():
@@ -97,7 +94,7 @@ class SfdcConnector():
             logger_main.error("Coudn't retrieve SID entry")
             return None
 
-    def connection_check(self) -> None:
+    def connection_check(self) -> bool:
         
         logger_main.info("SID checking in progress ...")
 
@@ -129,10 +126,11 @@ class SfdcConnector():
         else:
             logger_main.critical('SID not ok!!!')
             self.sid = None
+            return False
         
-        return None
+        return True
 
-    async def _report_request(self, report: SfdcReport, session) -> None:
+    async def _report_request(self, report: SfdcReport, session: aiohttp.ClientSession) -> None:
 
         report.created_date = datetime.now()
         
@@ -140,7 +138,7 @@ class SfdcConnector():
 
         logger_main.debug("Sending asynchronous report request with params: %s, %s", report_url, self.headers)
         
-        while not report.valid:
+        while not report.valid and report.attempt_count < 20:
             async with session.get(report_url, 
                                     headers=self.headers, 
                                     cookies={'sid': str(self.sid)},
@@ -162,7 +160,7 @@ class SfdcConnector():
         
         return None
     
-    async def _report_request_all(self, reports: list[SfdcReport], session) -> None:
+    async def _report_request_all(self, reports: list[SfdcReport], session: aiohttp.ClientSession) -> None:
 
         tasks = []
 
@@ -180,7 +178,7 @@ class SfdcConnector():
     async def report_gathering(self, reports: list[SfdcReport]) -> None:
 
         logger_main.debug("Awaiting content")
-        timeout = aiohttp.ClientTimeout(total=1_800)
+        timeout = aiohttp.ClientTimeout(total=self.timeout)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             await self._report_request_all(reports, session)
 
