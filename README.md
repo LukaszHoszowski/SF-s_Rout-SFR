@@ -68,11 +68,22 @@ Once you run `main.py`:
 
 - currently only save to CSV method is available
 
+## Benchmarks
+
+My testing set consist of 33 reports from various universes of SFDC with size between 200 kb to 200 mb. In total 1.4 gb of data.
+
+Tests were not bounded by network bandwidth, at least on my side. Tests were evaluated on i7-8850H, DDR4 32 gb, Windows 10 x64.
+
+Processing of the testing set vary between 3 and 8 minutes, results strongly correlate to SFDC performance on given time. Time of processing is correlated to size of the report.
+
 ## Final remarks
 
 This app has been created based on environment of my organization. There is alternative way of Authenticating to SFDC based on security token, unfortunately this option was blocked in my organization and only SSO is available. 
 
 Program has been created as efficient tool which can be hosted on relatively weak machine with limited resources. I current revision I've decreased memory footprint and distribute resources more accurately.
+
+## Release Notes
+[CHANGELOG](CHANGELOG.md)
 
 ## License
 [Apache 2.0](LICENSE.md)
