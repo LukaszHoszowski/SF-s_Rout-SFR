@@ -1,17 +1,20 @@
-import csv
+import asyncio
+import logging
+from queue import Queue
+import aiohttp
 from datetime import datetime
-from multiprocessing.managers import ListProxy
-import os
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 import browser_cookie3
 import webbrowser
-import requests
 from time import sleep
-from io import StringIO
-import pandas as pd
 
-from components.containers import Report, SFDC_Report
+import requests
+from tqdm.asyncio import tqdm
 
+from components.containers import Report, SfdcReport
+
+
+logger_main = logging.getLogger(__name__)
 
 @runtime_checkable
 class Connector(Protocol):
@@ -22,216 +25,172 @@ class Connector(Protocol):
     
     Attributes
     ----------
-    sid: str
-        session id
     domain: str
-        system domain address
+        sfdc domain -> "https://<your_org>.com/"
+    queue: Quoue
+        instance of Queue for report sharing
     timeout: int
         request timeout in seconds
-    headers: dict
-        system required headers
+    headers: dict[str, str]
+        required request headers
     export_params: str
         additional export parameters
     report: str
         report container
 
-    Attributes
+    Methods
     ----------    
-    send_request():
-        ...
+    def connection_check(self) -> bool:
+        returns True is connection was succesful, False if wasn't able to establish the connection
     
-    def download(path: str)
+    def report_gathering(self, reports: list[Report], session: aiohttp.ClientSession) -> None:
+        sends requests asynchronously to given domain and save them inside report objects
     """
     
-    sid: str|None
     domain: str
+    queue: Queue
     timeout: int
     headers: dict[str, str]
     export_params: str
 
-    def sid_interception(self) -> str|None:
-        ...
-
     def connection_check(self) -> bool:
         ...
 
-    def report_request(self, report: Report) -> str|None:
+    def report_gathering(self, reports: list[Report], session: aiohttp.ClientSession) -> None:
         ...
     
-    def save_to_csv(self, report: Report) -> str:
-        ...
-    
-    @staticmethod
-    def load_reports_list(report_list, report_directory):
-        ...
-
-    @staticmethod    
-    def final_report(result_reports, final_report_path):
-        ...
-
-class SFDC_Connector():
+class SfdcConnector():
 
     def __init__(self,
-        domain='',
+        
+        domain,
+        queue,
         *,
         sid=None,
         timeout=900, 
-        headers={'Content-Type': 'application/json', 
+        headers={'Content-Type': 'application/csv', 
                 'X-PrettyPrint': '1'}, 
         export_params='?export=csv&enc=UTF-8&isdtp=p1'):
-        
+
         self.domain = domain
-        self.sid = self.sid_interception() if not sid else sid
+        self.queue = queue
+        self.sid = self._sid_interception() if not sid else sid
         self.timeout = timeout
         self.headers = headers
         self.export_params = export_params
 
-    def sid_interception(self):
-
+    def _sid_interception(self) -> str|None:
+        
+        logger_main.info('SID interception started')
         try:
+            logger_main.debug("Trying to access MS Edge's CookieJar")
             cookie_jar = browser_cookie3.edge()
+            logger_main.debug("Parsing domain key for cookies")
             domain = self.domain.replace('https://', '').replace('/','')
+            logger_main.debug("Retrieving SID entry from CookieJar")
             sid = [cookie.value for cookie in cookie_jar if cookie.name == 'sid' and cookie.domain == domain]
-            return sid[0] if sid else None
+            return sid[0] or None
         except:
+            logger_main.debug("SID entry not there")
             return None
 
-    def connection_check(self):
+    def connection_check(self) -> bool:
         
-        print(f'SID checking in progress ...')
+        logger_main.info("SID checking in progress ...")
 
         while not self.sid:
-            print('SID not found! -> Login to SFDC -> SalesForce webpage will open shortly.')
+            logger_main.warning('SID not found! -> Login to SFDC -> SalesForce webpage will open shortly')
             sleep(2)
             
             edge_path = '"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe" --profile-directory=Default %s'
+            logger_main.debug('Openning SFDC webside to log in to SalesForce')
             webbrowser.get(edge_path).open(self.domain)
             
+            logger_main.debug("Starting 30 sec sleep to let user log in to SalesForce")
             sleep(30)
             while not self.sid:
-                self.sid = self.sid_interception()
-                print('intercepting SID! Hold on tight!')
+                self.sid = self._sid_interception()
+                logger_main.info('intercepting SID! Hold on tight!')
                 sleep(2)
             
-        print(f'SID found!')
+        logger_main.info('SID found!')
 
-        self.headers['Authorization'] = 'Bearer ' + self.sid
+        logger_main.debug("Parsing headers for SFDC request check")
+        self.headers['Authorization'] = ''.join(filter(None, ['Bearer ', self.sid]))
+        logger_main.debug("Checking SID validity")
         response = requests.get(self.domain, 
                                 cookies={'sid': self.sid},
                                 allow_redirects=True)
         if response.headers['Cache-Control'] == 'private':
-            print('SID ok!')
+            logger_main.info('SID ok!')
         else:
+            logger_main.critical('SID not ok!!!')
             self.sid = None
+            return False
         
-        return self.sid
+        return True
 
-    def report_request(self, report: SFDC_Report):
-        
+    async def _report_request(self, report: SfdcReport, session: aiohttp.ClientSession) -> None:
+
         report.created_date = datetime.now()
         
-        report_url = self.domain + report.report_id + self.export_params
+        report_url = self.domain + report.id + (report.params if report.params else self.export_params)
 
-        self.headers['Authorization'] = ''.join(filter(None, ['Bearer ', self.sid]))
-
-        response = requests.get(report_url, 
-                                headers=self.headers, 
-                                cookies={'sid': str(self.sid)},
-                                timeout=self.timeout,
-                                allow_redirects=False)
-
-        report.attempt_count += 1
-
-        if response.status_code != 200:
-            report.valid = False
-            return False
-        else:
-            report.stream = response.content.decode('utf-8')
-            report.valid = True
-            return report.stream
-
-    def read_stream(self, report: SFDC_Report) -> tuple:
+        logger_main.debug("Sending asynchronous report request with params: %s, %s", report_url, self.headers)
         
-        report.content = pd.read_csv(StringIO(report.stream),   
-                                    dtype='string',
-                                    low_memory=False)
+        while not report.valid and report.attempt_count < 20:
+            async with session.get(report_url, 
+                                    headers=self.headers, 
+                                    cookies={'sid': str(self.sid)},
+                                    timeout=self.timeout,
+                                    allow_redirects=True) as r:
 
-        report.content = report.content.head(report.content.shape[0] -5)
+                report.attempt_count += 1
 
-        return report.content.shape
+                if r.status == 200:
+                    logger_main.debug("%s -> Request successful, retrievieng content", report.name)
+                    try:
+                        report.response = await r.text()
+                        report.valid = True
+                        logger_main.debug("Sending the content to the queue for processing, %s elements in the queue before transfer", self.queue.qsize())
+                        self.queue.put(report)
+                        logger_main.debug('%s succesfuly downloaded and put to the queue', report.name)
+                    except aiohttp.ClientPayloadError as e:
+                        logger_main.warning('%s is invalid, Unexpected end of stream, SFDC just borke the connection', report.name)
+                        continue
+                elif r.status == 404:
+                    logger_main.error("%s is invalid, Report does not exist - check ID, SFDC respond with status %s - %s", report.name, r.status, r.reason)
+                    report.valid = False
+                    break
+                elif r.status == 500:
+                    logger_main.error("%s is invalid, Report not reachable - no access to the report, SFDC respond with status %s - %s", report.name, r.status, r.reason)
+                    report.valid = False
+                    break
+                else:
+                    logger_main.warning("%s is invalid, Timeout, SFDC respond with status %s - %s", report.name, r.status, r.reason)
+                    report.valid = False
+        return None
     
-    def save_to_csv(self, report: SFDC_Report) -> str:
+    async def _report_request_all(self, reports: list[SfdcReport], session: aiohttp.ClientSession) -> None:
 
-        file_path = f'{"/".join([str(report.path), report.file_name])}.csv'
+        tasks = []
 
-        report.content.to_csv(file_path,
-                            index=False)
+        logger_main.debug("Creating tasks for asynchronous processing")
+        for report in reports:
+            task = asyncio.create_task(self._report_request(report, session))
+            tasks.append(task)
+
+        _ = [await task_ for task_ in tqdm.as_completed(tasks, total=len(tasks))]
+
+        await asyncio.gather(*tasks)
         
-        report.downloaded = True
-        report.pull_date = datetime.now()
-        
-        fsize = round((os.stat(file_path).st_size / (1024 * 1024)),1)
-        report.file_size = fsize
+        return None
+    
+    async def report_gathering(self, reports: list[SfdcReport]) -> None:
 
-        report.processing_time = report.pull_date - report.created_date
-
-        print('|', end='', flush=True)
-
-        return file_path
-
-    def erase_report(self, report: SFDC_Report) -> None:
-        report.stream = ""
-        report.content = pd.DataFrame()
+        logger_main.debug("Awaiting content")
+        timeout = aiohttp.ClientTimeout(total=self.timeout)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            await self._report_request_all(reports, session)
 
         return None
-
-    def report_processing(self, report: SFDC_Report, result_reports: list) -> None:
-    
-        while not report.valid:
-            try:
-                self.report_request(report)
-                self.read_stream(report)
-                self.save_to_csv(report)
-                self.erase_report(report)
-            except pd.errors.EmptyDataError as e:
-                print(f'Timeout {report.file_name}, {report.attempt_count}')
-                report.valid = False
-                continue
-            except pd.errors.ParserError as e:
-                print(f'Unexpected end of stream {report.file_name}, {report.attempt_count}')
-                report.valid = False
-                continue
-            break
-            
-        result_reports.append(report)
-
-        return None
-
-    @staticmethod
-    def load_reports_list(report_list: str, report_directory: str) -> list[SFDC_Report]:
-    
-        reports = {}
-        
-        with open(report_list) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            next(csv_reader)
-            
-            for row in csv_reader:
-                reports[row[0]] = row[1]
-        
-        return [SFDC_Report(report_id=v, file_name=k, path=report_directory) for k, v in reports.items()]
-
-    @staticmethod    
-    def final_report(result_reports, final_report_path: str) -> str:
-        header = ['file_name', 'report_id', 'type', 'valid', 'created_date', 'pull_date', 'processing_time', 'attempt_count', 'file_size'] 
-        
-        with open(str(final_report_path), 'w', encoding='UTF8', newline='') as f:
-            writer = csv.writer(f)
-
-            writer.writerow(header)
-
-            for report in result_reports:
-                writer.writerow([report.file_name, report.report_id, report.type, report.valid, report.created_date, 
-                                report.pull_date, report.processing_time, report.attempt_count, report.file_size])
-        
-        return final_report_path

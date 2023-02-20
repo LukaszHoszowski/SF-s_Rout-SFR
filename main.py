@@ -1,54 +1,54 @@
-import os
-from dotenv import load_dotenv
-from multiprocessing import Pool, Manager
+#!/usr/bin/env python3.11
 
-from components.connectors import SFDC_Connector
-from components.internals import loading_cli_arguments
-from components.report_excpetions import EnvFileNotPresent
+import asyncio
+import logging
+import os
+from queue import Queue
+import time
+
+from components.connectors import SfdcConnector
+from components.containers import ReportContainer
+from components.file_handler import FileSaveHandler
+from components.internals import load_params, load_env_file
+from components.logs import logger_configurer
 
 
 if __name__ == '__main__':
 
-    with Manager() as manager:
-        
-        print("")
+    t0 = time.time()
+    
+    logger_main = logging.getLogger(__name__)
+    logger_configurer()
+    logger_main.info('SFR started')
 
-        try:
-            load_dotenv()
-        except EnvFileNotPresent:
-            print('.env file missing')
+    load_env_file()
 
-        abs_path, report_list, report_directory = loading_cli_arguments()
+    report_list_path, summary_report_path = load_params()
 
-        final_report_path = abs_path + str(os.getenv("FINAL_REPORT_PATH"))
-        domain = str(os.getenv("SFDC_DOMAIN"))
+    queue = Queue()
 
-        connector = SFDC_Connector(domain=domain)
-        connector.connection_check()
+    domain = str(os.getenv("SFDC_DOMAIN"))
 
-        reports = connector.load_reports_list(report_list, report_directory)
+    connector = SfdcConnector(domain, queue)
+    container = ReportContainer(report_list_path, summary_report_path)
 
-        result_reports = manager.list()
+    connector.connection_check()
+    container.create_reports()
+    
+    num_of_workers = int((os.cpu_count() or 4) / 2)
 
-        pool = Pool(processes=len(reports))
+    for num in range(num_of_workers):
+        worker = FileSaveHandler(queue)
+        worker.name = f'Slave-{num}'
+        worker.daemon = True
+        worker.start()
+    
+    asyncio.run(connector.report_gathering(container.report_list))
 
-        print("")
-        print(f'Processing of {len(reports)} reports started')
-        print(" ")
-        print(f'0% [{len(reports) * " "}] 100%')
-        print("    ", end='', flush=True)
+    queue.join()
 
-        pool.starmap(connector.report_processing, [(report, result_reports) for report in reports])
-        
-        print(" ")
-        print(" ")
-        
-        pool.close()
-        pool.join()
+    t1 = time.time()
 
-        for report in result_reports:
-            print(f'{report.file_name:<40} attempts: {report.attempt_count:>2}, size: {report.file_size:<5} Mb, time: {report.processing_time}')
+    container.create_summary_report()
 
-        connector.final_report(result_reports, final_report_path)
-
-        print(f'\nEnd of processing - {len(result_reports)} reports processed successfully')
+    logger_main.info('SFR finished in %s', (t1 - t0))
