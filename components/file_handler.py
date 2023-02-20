@@ -61,12 +61,18 @@ class FileSaveHandler(Thread):
     def _read_stream(self, report: Report) -> None:
         
         logger_main.debug('Reading content of %s', report.name)
-        df = pd.read_csv(StringIO(report.response),   
-                                    dtype='string',
-                                    low_memory=False)
-
-        logger_main.debug('Removing last 5 lines, footer of %s', report.name)
-        report.content = df.head(df.shape[0] -5)
+        
+        try:
+            report.content = pd.read_csv(StringIO(report.response),   
+                                        dtype='string',
+                                        low_memory=False)
+        except pd.errors.EmptyDataError as e:
+            logger_main.warning('%s timeouted, attmpts: %s',report.name, report.attempt_count)
+            report.downloaded = False
+        finally:
+            report.response = ''
+            logger_main.debug('Removing last 5 lines, footer of %s', report.name)
+            report.content = report.content.head(report.content.shape[0] -5)
 
         return None
     
@@ -76,25 +82,29 @@ class FileSaveHandler(Thread):
         logger_main.debug('Parsing path for %s -> %s', report.name, file_path)
 
         logger_main.debug('%s is saving file for %s -> %s', current_thread().name, report.name, file_path)
-        report.content.to_csv(file_path,
-                            index=False)
         
-        logger_main.debug('%s saved %s -> %s', current_thread().name, report.name, file_path)
-        report.downloaded = True
-        
-        report.pull_date = datetime.now()
-        report.size = round((os.stat(file_path).st_size / (1024 * 1024)),1)
-        report.processing_time = report.pull_date - report.created_date
+        try:
+            report.content.to_csv(file_path,
+                                index=False)
+        except pd.errors.ParserError as e:
+                logger_main.warning('%s unexpected end of stream: %s',report.name, report.attempt_count)
+                report.downloaded = False    
+        finally:
+            logger_main.debug('%s saved %s -> %s', current_thread().name, report.name, file_path)
+            report.downloaded = True
+            
+            report.pull_date = datetime.now()
+            report.size = round((os.stat(file_path).st_size / (1024 * 1024)),1)
+            report.processing_time = report.pull_date - report.created_date
 
-        logger_main.debug('%s succesfully saved by %s at %s, operation took: %s, file size: %s', 
-                          report.name, current_thread().name, report.pull_date, report.processing_time, report.size)
-        
+            logger_main.debug('%s succesfully saved by %s at %s, operation took: %s, file size: %s', 
+                            report.name, current_thread().name, report.pull_date, report.processing_time, report.size)
+            
         return None    
 
     def _erase_report(self, report: Report) -> None:
         
         logger_main.debug('Deleting response and content for %s', report.name)
-        report.response = ""
         report.content = pd.DataFrame()
 
         return None    
@@ -102,18 +112,9 @@ class FileSaveHandler(Thread):
     def report_processing(self, report: Report) -> None:
         
         if report.valid:
-            try:
-                self._read_stream(report)
-                self._save_to_csv(report)
-                self._erase_report(report)
-                
-            except pd.errors.EmptyDataError as e:
-                logger_main.warning('%s timeouted, attmpts: %s',report.name, report.attempt_count)
-                report.downloaded = False
-            
-            except pd.errors.ParserError as e:
-                logger_main.warning('%s unexpected end of stream: %s',report.name, report.attempt_count)
-                report.downloaded = False
+            self._read_stream(report)
+            self._save_to_csv(report)
+            self._erase_report(report)
         else:
             report.downloaded = True
         return None
@@ -129,6 +130,8 @@ class FileSaveHandler(Thread):
                 try:
                     report.id
                     self.report_processing(report)
+                except Exception as e:
+                    logger_main.debug('%s failed while processing %s -> %s' , current_thread().name, report.name, e)
                 finally:
                     logger_main.debug('%s finishing %s', current_thread().name, report.name)
                     self.queue.task_done()

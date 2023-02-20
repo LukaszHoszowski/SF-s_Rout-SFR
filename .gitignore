@@ -5,7 +5,7 @@ downloader_env/
 !/reports/.gitkeep
 /input/*
 !/input/reports-default.csv
-exec/
+docs/
 /.env
 /logs/*
 !/logs/.gitkeep

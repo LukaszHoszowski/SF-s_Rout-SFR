@@ -110,7 +110,7 @@ Requests are send out asynchronously to speed things up and restrain memory cons
 
 Thread based solution for saving request responses to a file. At the moment only CSV files are supported.
 
-File handler spawns workers in separate threads. Number of workers is equal to half of available threads on your machine (e.g. if your cpu has 6 cores and 12 threads SFR will spawn 6 workers). If information about available resources is not reachable it will default to **2**. Such approach will not dramatically slow down other applications on your computer and will secure required resources for SFR. Each worker will observe `Queue`, if something will be put into `Queue` one of the workers will start processing of the report. Bare in mind that each saving operation erase response and content of the report for due to memory consumption. `Queue` size in unlimited so sooner or later workers will handle entire workload. Workers will die once `Queue` will send signal that they shouldn't expect any new items. These workers who are just processing items will finish their job and die quietly.
+File handler spawns workers in separate threads. Number of workers is equal to half of available threads on your machine (e.g. if your cpu has 6 cores and 12 threads SFR will spawn 6 workers). If information about available resources is not reachable it will default to **2**. Such approach will not dramatically slow down other applications on your computer and will secure required resources for SFR. Each worker will observe `Queue`, if something will be put into `Queue` one of the workers will start processing of the report. Bare in mind that each saving operation erase response and content of the report due to memory consumption. `Queue` size in unlimited so sooner or later workers will handle entire workload. Workers will die once `Queue` will send signal that they shouldn't expect any new items. These workers who are just processing items will finish their jobs and die quietly.
 
 All files are processed by Pandas which gives wide palette of available formats.
 
@@ -122,7 +122,7 @@ All files are processed by Pandas which gives wide palette of available formats.
 
 - be default number of workers in equal to half of available threads of the machine
 
-- by default logs level for rotating file (3 part, up to 1_000_000 bytes) is set to DEBUG, for stdout is set to WARNING
+- by default logs level for rotating file (3 part, up to 1_000_000 bytes) is set to INFO, for stdout is set to WARNING
 
 - progress bar is based on quantity of items and my show incorrect ETA
 

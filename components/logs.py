@@ -11,7 +11,7 @@ def logger_configurer() -> None:
                 None
     """
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     log_path = os.path.join(os.path.abspath(__file__), '..', '..', './logs/sfr.log')
 

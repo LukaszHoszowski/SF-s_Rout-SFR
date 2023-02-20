@@ -147,10 +147,7 @@ class SfdcConnector():
 
                 report.attempt_count += 1
 
-                if r.status != 200:
-                    logger_main.warning("%s invalid, check ID, is SFDC alive", report.name)
-                    report.valid = False
-                else:
+                if r.status == 200:
                     logger_main.debug("%s -> Request successful, retrievieng content", report.name)
                     try:
                         report.response = await r.text()
@@ -159,9 +156,15 @@ class SfdcConnector():
                         self.queue.put(report)
                         logger_main.debug('%s succesfuly downloaded and put to the queue', report.name)
                     except aiohttp.ClientPayloadError as e:
-                        logger_main.warning('%s result unexpected end of stream', report.name)
+                        logger_main.warning('%s is invalid, Unexpected end of stream, SFDC just borke the connection', report.name)
                         continue
-        
+                elif r.status == 404:
+                    logger_main.warning("%s is invalid, Report not exist - check ID / access to the report, SFDC repond with status %s - %s", report.name, r.status, r.reason)
+                    report.valid = False
+                    break
+                else:
+                    logger_main.warning("%s is invalid, Timeout, SFDC repond with status %s - %s", report.name, r.status, r.reason)
+                    report.valid = False
         return None
     
     async def _report_request_all(self, reports: list[SfdcReport], session: aiohttp.ClientSession) -> None:
