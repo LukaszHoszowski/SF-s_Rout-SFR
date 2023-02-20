@@ -18,7 +18,7 @@ def load_params() -> tuple[Path, Path]:
         cli_path_input = sys.argv[1]
         logger_main.info('%s CLI parameters found', len(sys.argv[1:]))
     except:
-        logger_main.debug("CLI parameters hasn't been detected, proceeding with default paths")
+        logger_main.debug("CLI parameters hasn't been detected, proceeding with defaults")
         cli_path_input = ''
         
     if cli_path_input:

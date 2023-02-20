@@ -159,7 +159,7 @@ class SfdcConnector():
                         logger_main.warning('%s is invalid, Unexpected end of stream, SFDC just borke the connection', report.name)
                         continue
                 elif r.status == 404:
-                    logger_main.warning("%s is invalid, Report not exist - check ID / access to the report, SFDC repond with status %s - %s", report.name, r.status, r.reason)
+                    logger_main.error("%s is invalid, Report not exist - check ID / access to the report, SFDC repond with status %s - %s", report.name, r.status, r.reason)
                     report.valid = False
                     break
                 else:
