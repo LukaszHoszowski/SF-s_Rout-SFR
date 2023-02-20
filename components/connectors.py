@@ -91,7 +91,7 @@ class SfdcConnector():
             sid = [cookie.value for cookie in cookie_jar if cookie.name == 'sid' and cookie.domain == domain]
             return sid[0] or None
         except:
-            logger_main.error("Coudn't retrieve SID entry")
+            logger_main.debug("SID entry not there")
             return None
 
     def connection_check(self) -> bool:
@@ -134,7 +134,7 @@ class SfdcConnector():
 
         report.created_date = datetime.now()
         
-        report_url = self.domain + report.id + self.export_params
+        report_url = self.domain + report.id + (report.params if report.params else self.export_params)
 
         logger_main.debug("Sending asynchronous report request with params: %s, %s", report_url, self.headers)
         
@@ -159,11 +159,15 @@ class SfdcConnector():
                         logger_main.warning('%s is invalid, Unexpected end of stream, SFDC just borke the connection', report.name)
                         continue
                 elif r.status == 404:
-                    logger_main.error("%s is invalid, Report not exist - check ID / access to the report, SFDC repond with status %s - %s", report.name, r.status, r.reason)
+                    logger_main.error("%s is invalid, Report does not exist - check ID, SFDC respond with status %s - %s", report.name, r.status, r.reason)
+                    report.valid = False
+                    break
+                elif r.status == 500:
+                    logger_main.error("%s is invalid, Report not reachable - no access to the report, SFDC respond with status %s - %s", report.name, r.status, r.reason)
                     report.valid = False
                     break
                 else:
-                    logger_main.warning("%s is invalid, Timeout, SFDC repond with status %s - %s", report.name, r.status, r.reason)
+                    logger_main.warning("%s is invalid, Timeout, SFDC respond with status %s - %s", report.name, r.status, r.reason)
                     report.valid = False
         return None
     

@@ -1,2 +1,2 @@
-report_type,report_file_name,report_id,report_path
-SFDC,Name_of_the_report_also-the_file_name,15-char__report_id_from_SFDC,C:\absolute\path\to\your\download\foolder
+report_type,report_file_name,report_id,report_path,optional_export_params
+SFDC,Name_of_the_report_also-the_file_name,15-char__report_id_from_SFDC,C:\absolute\path\to\your\download\foolder,?export=&xf=localecsv&enc=UTF-8&scope=organization&pv1=4/1/2019&pv2=4/7/2019&isdtp=p1

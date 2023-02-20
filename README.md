@@ -144,7 +144,7 @@ Program has been created as efficient tool which can be hosted on relatively wea
 
 ## Release Notes
 
-[CHANGELOG](CHANGELOG.md)
+[Changelog](CHANGELOG.md)
 
 ## License
 

@@ -41,6 +41,7 @@ class Report(Protocol):
     name: str
     id: str
     path: PathLike
+    params: str
     downloaded: bool
     valid: bool
     created_date: datetime
@@ -76,6 +77,7 @@ class SfdcReport():
     name: str
     id: str
     path: PathLike
+    params: str
     downloaded: bool = False
     valid: bool = False
     created_date: datetime = datetime.now()
@@ -102,7 +104,7 @@ class ReportContainer():
     def _parse_input_report_csv(self) -> list[dict]:
         
         logger_main.debug("Parsing input reports")
-        keys = ['type', 'name', 'id', 'path']
+        keys = ['type', 'name', 'id', 'path', 'params']
         
         with open(self.report_list_path) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
