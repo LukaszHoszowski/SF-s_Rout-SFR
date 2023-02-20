@@ -77,7 +77,7 @@ class SfdcReport():
     name: str
     id: str
     path: PathLike
-    params: str
+    params: str = ''
     downloaded: bool = False
     valid: bool = False
     created_date: datetime = datetime.now()
@@ -109,11 +109,11 @@ class ReportContainer():
         with open(self.report_list_path) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             next(csv_reader)
-
+            
             report_params = [dict(zip(keys, values)) for values in csv_reader]
-
+            
         logger_main.debug("Input reports successfully generated")
-        
+
         return report_params
 
     def _create_sfdc_reports(self) -> Generator:
