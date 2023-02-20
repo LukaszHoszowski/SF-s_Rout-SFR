@@ -6,6 +6,7 @@
 
 ## Installation
 
+SFR require Python 3.11 to work properly.
 
 - navigate to some convenient folder
 
