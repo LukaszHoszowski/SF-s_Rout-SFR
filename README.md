@@ -140,7 +140,7 @@ Processing of the testing set vary between 3 and 8 minutes, results strongly cor
 
 This app has been created based on environment of my organization. There is alternative way of Authenticating to SFDC based on security token, unfortunately this option was blocked in my organization and only SSO is available. 
 
-Program has been created as efficient tool which can be hosted on relatively weak machine with limited resources. I current revision I've decreased memory footprint and distribute resources more accurately.
+Program has been created as efficient tool which can be hosted on relatively weak machine with limited resources. In current revision I've decreased memory footprint and distribute resources more accurately.
 
 ## Release Notes
 
