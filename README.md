@@ -57,10 +57,28 @@ or
 python3 main.py
 ```
 
-alternatively you can run main with parameter:
+alternatively you can run main with parameter to use different list of reports:
 
 ```sh
-main.py "c:\sfr\input\reports.csv""
+main.py "c:\sfr\input\reports.csv"
+```
+
+the application also supports other parameters, list below:
+
+```sh
+Options:
+  -r, --cli_report TEXT           Run single report ->
+                                  "type,name,id,path,optional_report_params"
+  -p, --cli_path PATH             Override save location of the reports
+  -t, --cli_threads INTEGER       Number of threads to spawn  [default: 0]
+  -ls, --cli_stdout_loglevel TEXT
+                                  STDOUT logging level -> [DEBUG | INFO | WARN
+                                  |WARNING | ERROR | CRITICAL]  [default:
+                                  WARNING]
+  -lf, --cli_file_loglevel TEXT   File logging level -> [DEBUG | INFO | WARN|
+                                  WARNING | ERROR | CRITICAL]  [default: INFO]
+  -v, --verbose                   Turn on/off progress bar  [default: True]
+  -h, --help                      Show this message and exit.
 ```
 
 This application has been created this way that you can add this as a task to your Windows Task Schduler.
