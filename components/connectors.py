@@ -1,9 +1,9 @@
 import logging
 import asyncio
+import requests
 import aiohttp
 import browser_cookie3
 import webbrowser
-import requests
 
 from typing import Protocol, runtime_checkable
 from queue import Queue
@@ -11,7 +11,7 @@ from datetime import datetime
 from tqdm.asyncio import tqdm
 from time import sleep
 
-from components.containers import Report, SfdcReport
+from components.containers import ReportProt, SfdcReport
 
 
 logger_main = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ class Connector(Protocol):
     def connection_check(self) -> bool:
         ...
 
-    def report_gathering(self, reports: list[Report], session: aiohttp.ClientSession) -> None:
+    def report_gathering(self, reports: list[ReportProt], session: aiohttp.ClientSession) -> None:
         ...
     
 class SfdcConnector():
@@ -79,8 +79,9 @@ class SfdcConnector():
         self.timeout = timeout
         self.headers = headers
         self.export_params = export_params
+        self.connection_check()
 
-    def _sid_interception(self) -> str|None:
+    def _sid_interception(self) -> str:
         
         logger_main.info('SID interception started')
         try:
@@ -90,10 +91,10 @@ class SfdcConnector():
             domain = self.domain.replace('https://', '').replace('/','')
             logger_main.debug("Retrieving SID entry from CookieJar")
             sid = [cookie.value for cookie in cookie_jar if cookie.name == 'sid' and cookie.domain == domain]
-            return sid[0] or None
+            return sid[0] or ""
         except:
             logger_main.debug("SID entry not there")
-            return None
+            return ""
 
     def connection_check(self) -> bool:
         
@@ -196,4 +197,3 @@ class SfdcConnector():
             await self._report_request_all(reports, session)
 
         return None
-    

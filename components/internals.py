@@ -1,9 +1,9 @@
-import logging
 import os
-from pathlib import Path
-import sys
+import logging
 
+from pathlib import Path
 from dotenv import load_dotenv
+
 from components.report_exceptions import EnvFileNotPresent
 
 
