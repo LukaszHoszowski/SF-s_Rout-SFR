@@ -6,3 +6,4 @@ pandas==1.5.3
 tqdm=4.64.1
 browser-cookie3==0.17.0
 python-dotenv==0.21.1
+click==8.1.3
