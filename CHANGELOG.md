@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2023-02-21
+### Added
+- CLI params handling by Click
+
+### Changed
+- error handling in requests
+- logging support
+- readme
+- some organizational changes to internal structure
+
 ## [0.1.1] - 2023-02-18
 ### Added
 - Logging module
