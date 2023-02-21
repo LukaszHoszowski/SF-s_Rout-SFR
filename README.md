@@ -81,9 +81,9 @@ Options:
   -h, --help                      Show this message and exit.
 ```
 
-This application has been created this way that you can add this as a task to your Windows Task Schduler.
+This application has been created this way that you can add this as a task to your Windows Task Scheduler.
 
-Create name.bat file in main folder of application, save it with below script
+Create `name.bat` file in main folder of application, save it with below script:
 
 ```sh
 "c:\path\to\new\virtual\environment\Scripts\python.exe" "c:\path\to\clonned\repo\main.py" "c:\path\to\input\reports.csv"
