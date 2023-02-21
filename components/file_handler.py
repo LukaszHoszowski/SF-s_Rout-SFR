@@ -2,7 +2,7 @@ from datetime import datetime
 from io import StringIO
 import logging
 import os
-from threading import Thread, current_thread, get_ident
+from threading import Thread, current_thread
 from typing import Optional, Protocol, runtime_checkable
 import pandas as pd
 

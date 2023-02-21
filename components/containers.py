@@ -1,9 +1,8 @@
 import csv
 from dataclasses import dataclass, field
 import logging
-from os import PathLike
 from pathlib import Path
-from typing import Generator, Protocol, runtime_checkable
+from typing import Generator, Optional, Protocol, runtime_checkable
 from datetime import datetime, timedelta
 
 from pandas import DataFrame
@@ -40,7 +39,7 @@ class Report(Protocol):
     type: str 
     name: str
     id: str
-    path: PathLike
+    path: Path
     params: str
     downloaded: bool
     valid: bool
@@ -65,7 +64,7 @@ class Container(Protocol):
         report id from the system
     """
 
-    report_list: list
+    report_list: list[dict[str, str]]
 
     def create_reports(self) -> list[Report]:
         ...
@@ -76,7 +75,7 @@ class SfdcReport():
     type: str 
     name: str
     id: str
-    path: PathLike
+    path: Path
     params: str = ''
     downloaded: bool = False
     valid: bool = False
@@ -93,28 +92,37 @@ class ReportContainer():
     def __init__(self, 
                 report_list_path: Path,
                 summary_report_path: Path,
-                report_params=[dict()], 
-                report_list=[]):
+                cli_report: str,
+                report_params: list[dict]=[dict()], 
+                report_list: list=[]):
         
         self.report_list_path = report_list_path
         self.summary_report_path = summary_report_path
+        self.cli_report = cli_report.split(',') if cli_report else []
         self.report_params = report_params
         self.report_list = report_list
+        
         
     def _parse_input_report_csv(self) -> list[dict]:
         
         logger_main.debug("Parsing input reports")
         keys = ['type', 'name', 'id', 'path', 'params']
-        
-        with open(self.report_list_path) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            next(csv_reader)
+
+        if self.cli_report:
+            if len(self.cli_report) != 5:
+                self.cli_report.append('')
             
-            report_params = [dict(zip(keys, values)) for values in csv_reader]
-            
+            self.report_params = [dict(zip(keys, self.cli_report))]
+        else:
+            with open(self.report_list_path) as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter=',')
+                next(csv_reader)
+                
+                self.report_params = [dict(zip(keys, values)) for values in csv_reader]
+                
         logger_main.debug("Input reports successfully generated")
 
-        return report_params
+        return self.report_params
 
     def _create_sfdc_reports(self) -> Generator:
         

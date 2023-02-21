@@ -1,15 +1,15 @@
-import asyncio
 import logging
-from queue import Queue
+import asyncio
 import aiohttp
-from datetime import datetime
-from typing import Protocol, runtime_checkable
 import browser_cookie3
 import webbrowser
-from time import sleep
-
 import requests
+
+from typing import Protocol, runtime_checkable
+from queue import Queue
+from datetime import datetime
 from tqdm.asyncio import tqdm
+from time import sleep
 
 from components.containers import Report, SfdcReport
 
@@ -62,8 +62,8 @@ class Connector(Protocol):
 class SfdcConnector():
 
     def __init__(self,
-        
         domain,
+        verbose,
         queue,
         *,
         sid=None,
@@ -73,6 +73,7 @@ class SfdcConnector():
         export_params='?export=csv&enc=UTF-8&isdtp=p1'):
 
         self.domain = domain
+        self.verbose = verbose
         self.queue = queue
         self.sid = self._sid_interception() if not sid else sid
         self.timeout = timeout
@@ -136,6 +137,7 @@ class SfdcConnector():
         
         report_url = self.domain + report.id + (report.params if report.params else self.export_params)
 
+        logger_main.info("%s -> Sending request", report.name)
         logger_main.debug("Sending asynchronous report request with params: %s, %s", report_url, self.headers)
         
         while not report.valid and report.attempt_count < 20:
@@ -148,7 +150,7 @@ class SfdcConnector():
                 report.attempt_count += 1
 
                 if r.status == 200:
-                    logger_main.debug("%s -> Request successful, retrievieng content", report.name)
+                    logger_main.info("%s -> Request successful, retrieving content", report.name)
                     try:
                         report.response = await r.text()
                         report.valid = True
@@ -156,16 +158,15 @@ class SfdcConnector():
                         self.queue.put(report)
                         logger_main.debug('%s succesfuly downloaded and put to the queue', report.name)
                     except aiohttp.ClientPayloadError as e:
-                        logger_main.warning('%s is invalid, Unexpected end of stream, SFDC just borke the connection', report.name)
+                        logger_main.warning('%s is invalid, Unexpected end of stream, SFDC just broke the connection', report.name)
                         continue
                 elif r.status == 404:
                     logger_main.error("%s is invalid, Report does not exist - check ID, SFDC respond with status %s - %s", report.name, r.status, r.reason)
                     report.valid = False
                     break
                 elif r.status == 500:
-                    logger_main.error("%s is invalid, Report not reachable - no access to the report, SFDC respond with status %s - %s", report.name, r.status, r.reason)
+                    logger_main.warning("%s is invalid, Report not reachable - no access to the report, SFDC respond with status %s - %s", report.name, r.status, r.reason)
                     report.valid = False
-                    break
                 else:
                     logger_main.warning("%s is invalid, Timeout, SFDC respond with status %s - %s", report.name, r.status, r.reason)
                     report.valid = False
@@ -180,7 +181,8 @@ class SfdcConnector():
             task = asyncio.create_task(self._report_request(report, session))
             tasks.append(task)
 
-        _ = [await task_ for task_ in tqdm.as_completed(tasks, total=len(tasks))]
+        if self.verbose:
+            _ = [await task_ for task_ in tqdm.as_completed(tasks, total=len(tasks))]
 
         await asyncio.gather(*tasks)
         
@@ -194,3 +196,4 @@ class SfdcConnector():
             await self._report_request_all(reports, session)
 
         return None
+    

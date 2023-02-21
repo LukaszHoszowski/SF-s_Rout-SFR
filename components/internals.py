@@ -9,26 +9,18 @@ from components.report_exceptions import EnvFileNotPresent
 
 logger_main = logging.getLogger(__name__)
 
-def load_params() -> tuple[Path, Path]:
+def load_params(reports_list_path) -> tuple[Path, Path]:
 
     logger_main.info('Loading parameters')
-
-    try:
-        logger_main.debug('Checking CLI parameters')
-        cli_path_input = sys.argv[1]
-        logger_main.info('%s CLI parameters found', len(sys.argv[1:]))
-    except:
-        logger_main.debug("CLI parameters hasn't been detected, proceeding with defaults")
-        cli_path_input = ''
-        
-    if cli_path_input:
+    
+    if reports_list_path:
         logger_main.debug('Assigning Input CLI parameter')
-        report_list = cli_path_input
+        report_list = reports_list_path
     else:
-        logger_main.debug('Parsing absolute path for Input parameter')
+        logger_main.debug('Parsing absolute path for Input parameter based on .env')
         report_list = os.path.abspath(str(os.getenv("REPORT_LIST_PATH")))
         
-    logger_main.debug('Parsing absolute path for Summary_report_path parameter')
+    logger_main.debug('Parsing absolute path for summary_report_path parameter')
     summary_report_path = os.path.abspath(str(os.getenv("SUMMARY_REPORT_PATH")))
      
     logger_main.debug('Transforming paths into Path objects')
