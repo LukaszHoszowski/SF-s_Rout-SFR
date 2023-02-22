@@ -19,11 +19,11 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.argument('reports_list_path', required=False, type=click.Path(exists=True))
-@click.option('--cli_report', '-r', help='Run single report -> "type,name,id,path,optional_report_params"')
+@click.option('--cli_report', '-r', type=click.STRING, help='Run single report -> "type,name,id,path,optional_report_params"')
 @click.option('--cli_path', '-p', type=click.Path(exists=True), help='Override save location of the reports')
-@click.option('--cli_threads', '-t', default=0, show_default=True, help='Number of threads to spawn')
-@click.option('--cli_stdout_loglevel', '-ls', default="WARNING", show_default=True, help='STDOUT logging level -> [DEBUG | INFO | WARN |WARNING | ERROR | CRITICAL]')
-@click.option('--cli_file_loglevel', '-lf', default="INFO", show_default=True, help='File logging level -> [DEBUG | INFO | WARN| WARNING | ERROR | CRITICAL]')
+@click.option('--cli_threads', '-t', type=click.INT, default=0, show_default=True, help='Number of threads to spawn')
+@click.option('--cli_stdout_loglevel', '-ls', type=click.STRING, default="WARNING", show_default=True, help='STDOUT logging level -> [DEBUG | INFO | WARN |WARNING | ERROR | CRITICAL]')
+@click.option('--cli_file_loglevel', '-lf', type=click.STRING, default="INFO", show_default=True, help='File logging level -> [DEBUG | INFO | WARN| WARNING | ERROR | CRITICAL]')
 @click.option('--verbose', '-v', is_flag=True, show_default=True, default=True, help='Turn on/off progress bar')
 
 def main(reports_list_path, cli_report, cli_path, cli_threads, cli_stdout_loglevel, cli_file_loglevel, verbose):
