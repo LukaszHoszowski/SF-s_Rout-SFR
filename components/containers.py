@@ -2,6 +2,7 @@ import csv
 import logging
 
 from dataclasses import dataclass, field
+from os import PathLike
 from pathlib import Path
 from typing import Any, Generator, Protocol, runtime_checkable
 from datetime import datetime, timedelta
@@ -22,7 +23,7 @@ class ReportProt(Protocol):
     :param id: Report id, identification number of the report in SFDC
     :type id: str
     :param path: Report path, save location for the report in form of Path object
-    :type path: Path
+    :type path: PathLike
     :param params: Report default export parameters
     :type params: str
     :param downloaded: Flag indicating whether the reports has been succesfully downloaded or not
@@ -48,7 +49,7 @@ class ReportProt(Protocol):
     type: str 
     name: str
     id: str
-    path: Path
+    path: PathLike
     params: str
     downloaded: bool
     valid: bool
@@ -64,8 +65,6 @@ class ReportProt(Protocol):
 class ReportsContainerProt(Protocol):
     """Protocol class for report container object.
     """
-
-    report_list: list[dict[str, str]]
 
     def create_reports(self) -> list[ReportProt]:
         """Orchestrating method to handle report objects factory
@@ -89,7 +88,7 @@ class SfdcReport():
     type: str 
     name: str
     id: str
-    path: Path
+    path: PathLike
     params: str = ''
     downloaded: bool = False
     valid: bool = False
@@ -107,8 +106,8 @@ class ReportsContainer():
     """
     
     def __init__(self, 
-                report_list_path: Path,
-                summary_report_path: Path,
+                report_list_path: PathLike,
+                summary_report_path: PathLike,
                 cli_report: str,
                 cli_path: str):
         
@@ -120,18 +119,18 @@ class ReportsContainer():
         self.summary_report_path = summary_report_path
         self.cli_report = cli_report.split(',') if cli_report else []
         self.cli_path = cli_path
-        self.report_params: list[dict[str, Any]] | None = None
+        self.report_params: list[dict[str, str | PathLike]] | None = None
         self.report_list: list[ReportProt]
         
         self.create_reports()
 
-    def _input_report_path_cast(self, object_kwargs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _input_report_path_cast(self, object_kwargs: list[dict[str, Any]]) -> list[dict[str, str | PathLike]]:
         """Casts value of `path` key into Path object. 
         
         :param object_kwargs: Colection of object parameters
         :type object_kwargs: list[dict[str, Any]]
         :return: Collection of object parameters with `path` casted to Path object 
-        :rtype: list[dict[str, Any]]
+        :rtype: list[dict[str, str | PathLike]]
         """
 
         logger_main.debug("Parsing input reports - casting 'path' to Path object")
