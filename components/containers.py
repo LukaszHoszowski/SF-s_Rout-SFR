@@ -23,6 +23,8 @@ class ReportProt(Protocol):
     :type id: str
     :param path: Report path, save location for the report in form of Path object
     :type path: Path
+    :param params: Report default export parameters
+    :type params: str
     :param downloaded: Flag indicating whether the reports has been succesfully downloaded or not
     :type downloaded: bool
     :param valid: Flag indicating whether the response has been succesfully retrieved or not
@@ -47,6 +49,7 @@ class ReportProt(Protocol):
     name: str
     id: str
     path: Path
+    params: str
     downloaded: bool
     valid: bool
     created_date: datetime
@@ -59,24 +62,29 @@ class ReportProt(Protocol):
     
 @runtime_checkable
 class ReportsContainerProt(Protocol):
-    """
-    A Protocol class as a scaffold for report objects.
-    
-    ...
-    
-    Attributes
-    ----------
-    report_id: str
-        report id from the system
+    """Protocol class for report container object.
     """
 
     report_list: list[dict[str, str]]
 
     def create_reports(self) -> list[ReportProt]:
+        """Orchestrating method to handle report objects factory
+
+        :return: Collection of Reports
+        :rtype: list[ReportProt]
+        """
+        ...
+
+    def create_summary_report(self) -> None:
+        """Creates summary report which consist of all important details regarding Report objects. 
+        Summary report is generated once all the reports are completed.
+        """
         ...
 
 @dataclass(slots=True)
 class SfdcReport():
+    """Concrete class representing Report object from SFDC
+    """
 
     type: str 
     name: str
@@ -95,21 +103,25 @@ class SfdcReport():
 
 
 class ReportsContainer():
+    """Concrete class representing Report container object
+    """
+    
     def __init__(self, 
                 report_list_path: Path,
                 summary_report_path: Path,
                 cli_report: str,
                 cli_path: str):
         
-        """Constructor method, automatically create reports after initialization
+        """Constructor method for ReportContainer, automatically create reports after initialization
         """
 
+        self.keys = ['type', 'name', 'id', 'path', 'params']
         self.report_list_path = report_list_path
         self.summary_report_path = summary_report_path
         self.cli_report = cli_report.split(',') if cli_report else []
         self.cli_path = cli_path
         self.report_params: list[dict[str, Any]] | None = None
-        self.keys = ['type', 'name', 'id', 'path', 'params']
+        self.report_list: list[ReportProt]
         
         self.create_reports()
 
@@ -211,8 +223,8 @@ class ReportsContainer():
 
         return reports
     
-    def create_reports(self) -> list[SfdcReport]:
-        """Orchestrating function to handle report objects factory
+    def create_reports(self) -> list[ReportProt]:
+        """Orchestrating method to handle report objects factory
 
         :return: Collection of SfdcReports
         :rtype: list[SfdcReport]
@@ -225,7 +237,7 @@ class ReportsContainer():
     
     def create_summary_report(self) -> None:
         """Creates summary report which consist of all important details regarding reports. 
-        Report is generated once all the reports are saved.
+        Report is generated once all the reports are completed.
         """
 
         logger_main.debug("Creating summary report, saved in %s", self.summary_report_path)
