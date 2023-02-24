@@ -12,7 +12,7 @@ from pandas import DataFrame
 logger_main = logging.getLogger(__name__)
 
 @runtime_checkable
-class ReportProt(Protocol):
+class ReportProtocol(Protocol):
     """
     Protocol class for report object.
     
@@ -62,15 +62,15 @@ class ReportProt(Protocol):
     content: DataFrame
     
 @runtime_checkable
-class ReportsContainerProt(Protocol):
+class ReportsContainerProtocol(Protocol):
     """Protocol class for report container object.
     """
 
-    def create_reports(self) -> list[ReportProt]:
+    def create_reports(self) -> list[ReportProtocol]:
         """Orchestrating method to handle report objects factory
 
         :return: Collection of Reports
-        :rtype: list[ReportProt]
+        :rtype: list[ReportProtocol]
         """
         ...
 
@@ -83,6 +83,35 @@ class ReportsContainerProt(Protocol):
 @dataclass(slots=True)
 class SfdcReport():
     """Concrete class representing Report object from SFDC
+    
+    :param type: Report type, allowed options ['SFDC'], type drives connector and report objects selection
+    :type type: str
+    :param name: Report name, propagated to report file name
+    :type name: str
+    :param id: Report id, identification number of the report in SFDC
+    :type id: str
+    :param path: Report path, save location for the report in form of Path object
+    :type path: PathLike
+    :param params: Report default export parameters
+    :type params: str
+    :param downloaded: Flag indicating whether the reports has been succesfully downloaded or not. Defaults to False.
+    :type downloaded: bool
+    :param valid: Flag indicating whether the response has been succesfully retrieved or not. Defaults to False.
+    :type valid: bool
+    :param created_date: Report save completition date. Defaults to current datetime.
+    :type created_date: datetime
+    :param pull_date: Report response completition date. Defaults to current datetime.
+    :type pull_date: datetime
+    :param processing_time: The time it took to process the report in seconds. Defaults to 0 microseconds.
+    :type pull_date: timedelta
+    :param attempt_count: Number of attempts to process the report. Defaults to 0 .
+    :type attempt_count: int
+    :param size: Size of saved report file in Mb. Defaults to 0.0 .
+    :type size: float
+    :param response: Container for request response. Defaults to empty string.
+    :type response: str
+    :param content: Pandas DataFrame based on response. Defaults to empty Pandas DataFrame.
+    :type content: DataFrame
     """
 
     type: str 
@@ -102,7 +131,7 @@ class SfdcReport():
 
 
 class ReportsContainer():
-    """Concrete class representing Report container object
+    """Concrete class representing ReportContainer object
     """
     
     def __init__(self, 
@@ -111,7 +140,7 @@ class ReportsContainer():
                 cli_report: str,
                 cli_path: str):
         
-        """Constructor method for ReportContainer, automatically create reports after initialization
+        """Constructor method for ReportContainer, automatically creates reports after initialization
         """
 
         self.keys = ['type', 'name', 'id', 'path', 'params']
@@ -120,7 +149,7 @@ class ReportsContainer():
         self.cli_report = cli_report.split(',') if cli_report else []
         self.cli_path = cli_path
         self.report_params: list[dict[str, str | PathLike]] | None = None
-        self.report_list: list[ReportProt]
+        self.report_list: list[ReportProtocol]
         
         self.create_reports()
 
@@ -222,7 +251,7 @@ class ReportsContainer():
 
         return reports
     
-    def create_reports(self) -> list[ReportProt]:
+    def create_reports(self) -> list[ReportProtocol]:
         """Orchestrating method to handle report objects factory
 
         :return: Collection of SfdcReports

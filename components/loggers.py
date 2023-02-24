@@ -3,13 +3,18 @@ import logging
 import logging.handlers
 
 
-def logger_configurer(cli_stdout_loglevel, cli_file_loglevel, verbose) -> None:
+def logger_configurer(cli_stdout_loglevel: str, cli_file_loglevel: str, verbose: bool) -> None:
     """
-        Sets the configuration for logger instance. Supports STDOUT logger and ROTATING FILE logger.
-
-            Returns:
-                None
+    Configures logger settings for file and stdout handlers.
+    
+    :param cli_stdout_loglevel: LogLevel for stdout logger handler based on CLI option. Defaults to ERROR.
+    :type cli_stdout_loglevel: str
+    :param cli_file_loglevel: LogLevel for file logger handler based on CLI option. Defaults to INFO.
+    :type cli_stdout_loglevel: str
+    :param verbose: Flag toggling LogLevel for stdout logger handler, if True sets to ERROR, else INFO.
+    :type verbose: str
     """
+        
     levels = {
         'critical': logging.CRITICAL,
         'error': logging.ERROR,

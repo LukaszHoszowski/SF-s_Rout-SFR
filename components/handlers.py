@@ -1,60 +1,46 @@
 import os
 import logging
+from pathlib import Path
 import pandas as pd
 
-from asyncio import Queue
+from queue import Queue
 from datetime import datetime
 from io import StringIO
 from threading import Thread, current_thread, active_count
-from typing import NoReturn, Optional, Protocol, runtime_checkable
+from typing import NoReturn, Protocol, runtime_checkable
 
-from components.containers import ReportProt
+from components.containers import ReportProtocol
 
 
 logger_main = logging.getLogger(__name__)
 
 @runtime_checkable
-class WorkerFactoryProt(Protocol):
+class WorkerFactoryProtocol(Protocol):
+    """Protocol class for worker factory objects.
     """
-    A Protocol class as a scaffold for worker factory.
     
-    ...
-    Attributes
-    ----------
     queue: Queue
-        shared queue for items
     cli_threads: int
-        number of threads from cli parameters
     cli_report: str
-        single report mode from cli parameters
     _workers_count: int
-        calculated number of workers to be deployed
-        
-    Methods
-    ----------    
-    create_workers() -> None:
-        Creates workers
-    
-    active_workers() -> int:
-        Returns number of active workers
-    """
-    
-    queue: Queue
-    cli_threads: int
-    cli_report: str
-    _workers_count: str
  
     def create_workers(self) -> None:
+        """Creates workers on independent threads"""
         ...
         
     @staticmethod
     def active_workers() -> int:
+        """Counts active works in current time.
+
+        :return: Number of active works.
+        :rtype: int
+        """
         ...
 
 @runtime_checkable
-class FileHandlerProt(Protocol):
+class WorkerProtocol(Protocol):
     """
-    A Protocol class as a scaffold for file handler.
+    A Protocol class as a scaffold for a Worker.
     
     ...
     Attributes
@@ -80,35 +66,70 @@ class FileHandlerProt(Protocol):
         Starts thread listener process.
     """
     
-    reports: list[Optional[ReportProt]] 
+    reports: list[ReportProtocol]
     
-    def _read_stream(self, report: ReportProt) -> None:
+    def _read_stream(self, report: ReportProtocol) -> None:
+        """Reads the stream of data kept in Report object via Pandas read method. Deletes response content from the object.
+
+        :param report: Instance of the ReportProtocol object.
+        :type report: ReportProtocol
+        """
         ...
         
-    def _save_to_csv(self, report: ReportProt) -> None:
+    def _save_to_csv(self, report: ReportProtocol) -> None:
+        """Saves readed data to CSV file using Pandas save method.
+
+        :param report: Instance of the ReportProtocol object.
+        :type report: ReportProtocol
+        """
         ...
 
-    def _erase_report(self, report: ReportProt) -> None:
+    def _erase_report(self, report: ReportProtocol) -> None:
+        """Erases the report data.
+
+        :param report: Instance of the ReportProtocol object.
+        :type report: ReportProtocol
+        """
         ...
     
-    def report_processing(self, report: ReportProt) -> None:
+    def report_processing(self, report: ReportProtocol) -> None:
+        """Orchiestrates the report processing.
+
+        :param report: Instance of the ReportProtocol object.
+        :type report: ReportProtocol
+        """
         ...
 
     def run(self) -> NoReturn:
+        """Starts listner process on sepearet thread, awaits objects in the queue.
+
+        :return: Method never returns.
+        :rtype: NoReturn
+        """
         ...
 
 class WorkerFactory:
+    """Concrete class representing WorkerFactory object.
+    """
 
-    def __init__(self, queue, cli_threads, cli_report):
+    def __init__(self, queue: Queue, cli_threads: int, cli_report: str):
+        """Constructor method for WorkerFactory, automatically creates and deploys workers after initialization.
+        """
+        
         self.queue = queue
         self.cli_threads = cli_threads
         self.cli_report = cli_report
         self._workers_count = (int((os.cpu_count() or 4) / 2) if not cli_threads else cli_threads) if not self.cli_report else 1
+        
         self.create_workers()
+        
 
     def create_workers(self) -> None:
+        """Deploys given number of workers.
+        """
+
         for num in range(self._workers_count):
-            worker = FileHandler(self.queue)
+            worker = Worker(self.queue)
             worker.name = f'Slave-{num}'
             worker.daemon = True
             worker.start()
@@ -117,16 +138,31 @@ class WorkerFactory:
     
     @staticmethod
     def active_workers() -> int:
+        """Returns number of currently active workers 
+
+        :return: Number of workers.
+        :rtype: int
+        """
         return active_count() - 1
 
-class FileHandler(Thread):
+class Worker(Thread):
+    """Concrete class representing Worker object
+    """
 
-    def __init__(self, queue):
+    def __init__(self, queue: Queue):
+        """Constructor method for Worker.
+        """
+
         Thread.__init__(self)
         self.queue = queue
 
-    def _read_stream(self, report: ReportProt) -> None:
+    def _read_stream(self, report: ReportProtocol) -> None:
+        """Reads report's response and save it as `content` atribute. Erases saved response. 
         
+        :param report: Instance of the ReportProtocol object.
+        :type report: ReportProtocol
+        """
+
         logger_main.debug('Reading content of %s', report.name)
         
         try:
@@ -143,9 +179,25 @@ class FileHandler(Thread):
 
         return None
     
-    def _save_to_csv(self, report: ReportProt) -> None:
+    def _parse_save_path(self, report: ReportProtocol) -> os.PathLike:
+        """Parses path to save location.
+        
+        :param report: Instance of the ReportProtocol object.
+        :type report: ReportProtocol
+        :return: Path to save location
+        :rtype: os.PathLike
+        """
+        return Path(f'{"/".join([str(report.path), report.name])}.csv')
 
-        file_path = f'{"/".join([str(report.path), report.name])}.csv'
+    def _save_to_csv(self, report: ReportProtocol) -> None:
+        """Saves report content to CSV file. Sets object flags.
+
+        :param report: Instance of the ReportProtocol object.
+        :type report: ReportProtocol
+        """
+
+        file_path = self._parse_save_path(report)
+
         logger_main.debug('Parsing path for %s -> %s', report.name, file_path)
 
         logger_main.debug('%s is saving file for %s -> %s', current_thread().name, report.name, file_path)
@@ -169,15 +221,25 @@ class FileHandler(Thread):
             
         return None    
 
-    def _erase_report(self, report: ReportProt) -> None:
+    def _erase_report(self, report: ReportProtocol) -> None:
+        """Deletes report content in ReportProtocol object.
+
+        :param report: Instance of the ReportProtocol object.
+        :type report: ReportProtocol
+        """
         
         logger_main.debug('Deleting response and content for %s', report.name)
         report.content = pd.DataFrame()
 
         return None    
     
-    def report_processing(self, report: ReportProt) -> None:
-        
+    def process_report(self, report: ReportProtocol) -> None:
+        """Orchiestrates entire process of downloading the report.
+
+        :param report: Instance of the ReportProtocol object.
+        :type report: ReportProtocol
+        """
+
         if report.valid:
             self._read_stream(report)
             self._save_to_csv(report)
@@ -187,16 +249,21 @@ class FileHandler(Thread):
         return None
 
     def run(self) -> NoReturn:
+        """_summary_
+
+        :return: _description_
+        :rtype: NoReturn
+        """
         
         logger_main.debug('%s starting', current_thread().name)
         while True:
             report = self.queue.get()
-            if report:
-                
+            
+            if report:    
                 logger_main.debug('%s processing %s', current_thread().name, report.name)
                 try:
                     report.id
-                    self.report_processing(report)
+                    self.process_report(report)
                 except Exception as e:
                     logger_main.debug('%s failed while processing %s -> %s' , current_thread().name, report.name, e)
                 finally:
