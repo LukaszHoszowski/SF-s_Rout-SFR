@@ -187,3 +187,6 @@ class Config:
         logger_main.debug("Input reports successfully generated")
 
         return self._input_report_path_cast(_temp_report_params)
+    
+if __name__ == '__main__':
+    pass

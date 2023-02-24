@@ -51,3 +51,6 @@ def logger_configurer(cli_stdout_loglevel: str, cli_file_loglevel: str, verbose:
     logger.addHandler(handler_s)
 
     return None
+
+if __name__ == '__main__':
+    pass

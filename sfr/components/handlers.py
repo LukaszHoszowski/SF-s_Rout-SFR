@@ -270,3 +270,6 @@ class Worker(Thread):
                     logger_main.debug('%s finishing %s',
                                       current_thread().name, report.name)
                     self.queue.task_done()
+
+if __name__ == '__main__':
+    pass

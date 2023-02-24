@@ -200,3 +200,6 @@ class ReportsContainer():
                                 report.pull_date, report.processing_time, report.attempt_count, report.size])
 
         return None
+
+if __name__ == '__main__':
+    pass

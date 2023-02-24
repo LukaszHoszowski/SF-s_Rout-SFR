@@ -30,3 +30,6 @@ class EnvFileNotPresent(Exception):
     def __init__(self, message: str = ".env file not present in main directory"):
         self.message = message
         super().__init__(self.message)
+
+if __name__ == '__main__':
+    pass

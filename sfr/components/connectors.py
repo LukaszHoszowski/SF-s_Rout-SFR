@@ -316,3 +316,6 @@ class SfdcConnector():
             await self._report_request_all(reports, session)
 
         return None
+
+if __name__ == '__main__':
+    pass
