@@ -10,7 +10,7 @@ from queue import Queue
 from components.connectors import SfdcConnector
 from components.containers import ReportsContainer
 from components.handlers import WorkerFactory
-from components.config_loaders import load_params, load_env_file
+from components.config import Config
 from components.loggers import logger_configurer
 
 
@@ -38,16 +38,13 @@ def main(cli_reports_list_path, cli_report, cli_path, cli_threads, cli_stdout_lo
     logger_configurer(cli_stdout_loglevel, cli_file_loglevel, verbose)
     logger_main.info('SFR started')
 
-    load_env_file()
-
-    reports_list_path, summary_report_path = load_params(cli_reports_list_path)
-
+    config = Config(cli_reports_list_path, cli_report, cli_path, cli_threads)
     queue = Queue()
     connector = SfdcConnector(queue, verbose=verbose)
-    container = ReportsContainer(reports_list_path, summary_report_path, cli_report, cli_path)
-    WorkerFactory(queue, cli_threads, cli_report)
+    container = ReportsContainer(config.report_params_list, config.summary_report_path)
+    WorkerFactory(queue, threads=config.threads)
     
-    asyncio.run(connector.handle_requests(container.report_list))
+    asyncio.run(connector.handle_requests(container.reports_list))
 
     queue.join()
 

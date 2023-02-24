@@ -17,10 +17,11 @@ from components.containers import ReportProtocol
 
 logger_main = logging.getLogger(__name__)
 
+
 @runtime_checkable
 class Connector(Protocol):
     """Protocol class for connector object.
-    
+
     :param queue: Shared queue object.
     :type queue: Queue
     :param verbose: CLI parameter used as switch between progress bar and logging to stdout on INFO level.
@@ -29,15 +30,12 @@ class Connector(Protocol):
     :type timeout: int
     :param headers: Headers required to establish the connection.
     :type headers: dict[str, str]
-    :param export_params: Default parameters required by SFDC.
-    :type export_params: str
     """
 
     queue: Queue
     verbose: bool
     timeout: int
     headers: dict[str, str]
-    export_params: str
 
     def check_connection(self) -> bool:
         """Checks connection with given domain.
@@ -56,10 +54,11 @@ class Connector(Protocol):
         :type session: aiohttp.ClientSession
         """
         ...
-    
+
+
 class SfdcConnector():
     """Concrete class representing Connector object for SFDC
-    
+
     :param queue: Shared queue object.
     :type queue: Queue
     :param verbose: CLI parameter used as switch between progress bar and logging to stdout on INFO level. Defaults to False.
@@ -73,25 +72,30 @@ class SfdcConnector():
     """
 
     def __init__(self,
-        queue,
-        *,
-        verbose=False,
-        sid=None,
-        timeout=900, 
-        headers={'Content-Type': 'application/csv', 
-                'X-PrettyPrint': '1'}, 
-        export_params='?export=csv&enc=UTF-8&isdtp=p1'):
-
+                 queue: Queue,
+                 *,
+                 verbose: bool = False,
+                 timeout: int = 900,
+                 headers: dict[str, str] = {'Content-Type': 'application/csv',
+                                            'X-PrettyPrint': '1'}):
         """Constructor method for SfdcConnector, automatically checks connection after initialization.
+
+        :param queue: Shared, thread-safe queue.
+        :type queue: Queue
+        :param verbose: Flag, if True switches to verbose mode and changes loglevel for stdout handler to INFO, if Fales shows progress bar. Defaults to False.
+        :type verbose: bool
+        :param timeout: Response timeout in seconds. Defaults to 900.
+        :type timeout: int
+        :param headers: Headers for the request. Defaults to {'Content-Type': 'application/csv', 'X-PrettyPrint': '1'}.
+        :type headers: dict[str, str]
         """
 
-        self.domain = str(os.getenv("SFDC_DOMAIN"))
-        self.verbose = verbose
         self.queue = queue
-        self.sid = self._intercept_sid() if not sid else sid
+        self.verbose = verbose
+        self.domain = str(os.getenv("SFDC_DOMAIN"))
         self.timeout = timeout
         self.headers = headers
-        self.export_params = export_params
+        self.sid = self._intercept_sid()
         self.edge_path = '"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe" --profile-directory=Default %s'
 
         self.check_connection()
@@ -104,7 +108,7 @@ class SfdcConnector():
         """
 
         logger_main.debug("Parsing domain key for cookies")
-        return self.domain.replace('https://', '').replace('/','')
+        return self.domain.replace('https://', '').replace('/', '')
 
     def _intercept_sid(self) -> str:
         """Intercepts sid from MS Edge's CookieJar.
@@ -119,7 +123,8 @@ class SfdcConnector():
             cookie_jar = browser_cookie3.edge()
 
             logger_main.debug("Retrieving SID entry from CookieJar")
-            sid = [cookie.value for cookie in cookie_jar if cookie.name == 'sid' and cookie.domain == self._convert_domain_for_cookies_lookup()]
+            sid = [cookie.value for cookie in cookie_jar if cookie.name ==
+                   'sid' and cookie.domain == self._convert_domain_for_cookies_lookup()]
 
             return sid[0] or ""
         except:
@@ -131,13 +136,15 @@ class SfdcConnector():
         """Opens SFDC website on given domain url if `sid`
 
         """
-        logger_main.warning('SID not found! -> Login to SFDC -> SalesForce webpage will open shortly')
+        logger_main.warning(
+            'SID not found! -> Login to SFDC -> SalesForce webpage will open shortly')
         sleep(2)
-        
+
         logger_main.debug('Openning SFDC webside to log in to SalesForce')
         webbrowser.get(self.edge_path).open(self.domain)
-        
-        logger_main.debug("Starting 30 sec sleep to let user log in to SalesForce")
+
+        logger_main.debug(
+            "Starting 30 sec sleep to let user log in to SalesForce")
         sleep(30)
         while not self.sid:
             self.sid = self._intercept_sid()
@@ -151,28 +158,29 @@ class SfdcConnector():
         """
 
         logger_main.debug("Parsing headers for SFDC request check")
-        self.headers['Authorization'] = ''.join(filter(None, ['Bearer ', self.sid]))
+        self.headers['Authorization'] = ''.join(
+            filter(None, ['Bearer ', self.sid]))
 
         return None
-    
+
     def check_connection(self) -> bool:
         """Checks the connection with given domain.
 
         :return: Flag, True if connection was successful, False wasn't.
         :rtype: bool
         """
-        
+
         logger_main.info("SID checking in progress ...")
 
         while not self.sid:
             self._open_sfdc_site()
-            
+
         logger_main.info('SID found!')
 
         self._parse_headers()
 
         logger_main.debug("Checking SID validity")
-        response = requests.get(self.domain, 
+        response = requests.get(self.domain,
                                 cookies={'sid': self.sid},
                                 allow_redirects=True)
         if response.headers['Cache-Control'] == 'private':
@@ -181,7 +189,7 @@ class SfdcConnector():
             logger_main.critical('SID not ok!!!')
             self.sid = None
             return False
-        
+
         return True
 
     def _parse_report_url(self, report: ReportProtocol) -> str:
@@ -192,8 +200,8 @@ class SfdcConnector():
         :return: Parsed url.
         :rtype: str
         """
-        return self.domain + report.id + (report.params if report.params else self.export_params)
-    
+        return self.domain + report.id + report.export_params
+
     async def _request_report(self, report: ReportProtocol, session: aiohttp.ClientSession) -> None:
         """Sends asynchronous request to given domain with given parameters within shared session. Checks response status:
         - 200: response is saved in `ReportProtocol.response`, `ReportProtocol.valid` set to True, ReportProtocol is being put to the `queue`.
@@ -208,44 +216,52 @@ class SfdcConnector():
         """
 
         report.created_date = datetime.now()
-        
+
         report_url = self._parse_report_url(report)
 
         logger_main.info("%s -> Sending request", report.name)
-        logger_main.debug("Sending asynchronous report request with params: %s, %s", report_url, self.headers)
-        
+        logger_main.debug(
+            "Sending asynchronous report request with params: %s, %s", report_url, self.headers)
+
         while not report.valid and report.attempt_count < 20:
-            async with session.get(report_url, 
-                                    headers=self.headers, 
-                                    cookies={'sid': str(self.sid)},
-                                    timeout=self.timeout,
-                                    allow_redirects=True) as r:
+            async with session.get(report_url,
+                                   headers=self.headers,
+                                   cookies={'sid': str(self.sid)},
+                                   timeout=self.timeout,
+                                   allow_redirects=True) as r:
 
                 report.attempt_count += 1
 
                 if r.status == 200:
-                    logger_main.info("%s -> Request successful, retrieving content", report.name)
+                    logger_main.info(
+                        "%s -> Request successful, retrieving content", report.name)
                     try:
                         report.response = await r.text()
                         report.valid = True
-                        logger_main.debug("Sending the content to the queue for processing, %s elements in the queue before transfer", self.queue.qsize())
+                        logger_main.debug(
+                            "Sending the content to the queue for processing, %s elements in the queue before transfer", self.queue.qsize())
                         self.queue.put(report)
-                        logger_main.debug('%s succesfuly downloaded and put to the queue', report.name)
+                        logger_main.debug(
+                            '%s succesfuly downloaded and put to the queue', report.name)
                     except aiohttp.ClientPayloadError as e:
-                        logger_main.warning('%s is invalid, Unexpected end of stream, SFDC just broke the connection', report.name, e)
+                        logger_main.warning(
+                            '%s is invalid, Unexpected end of stream, SFDC just broke the connection', report.name, e)
                         continue
                 elif r.status == 404:
-                    logger_main.error("%s is invalid, Report does not exist - check ID, SFDC respond with status %s - %s", report.name, r.status, r.reason)
+                    logger_main.error(
+                        "%s is invalid, Report does not exist - check ID, SFDC respond with status %s - %s", report.name, r.status, r.reason)
                     report.valid = False
                     break
                 elif r.status == 500:
-                    logger_main.warning("%s is invalid, Timeout, SFDC respond with status %s - %s", report.name, r.status, r.reason)
+                    logger_main.warning(
+                        "%s is invalid, Timeout, SFDC respond with status %s - %s", report.name, r.status, r.reason)
                     report.valid = False
                 else:
-                    logger_main.warning("%s is invalid, Unknown Error, SFDC respond with status %s - %s", report.name, r.status, r.reason)
+                    logger_main.warning(
+                        "%s is invalid, Unknown Error, SFDC respond with status %s - %s", report.name, r.status, r.reason)
                     report.valid = False
         return None
-    
+
     async def _toggle_progress_bar(self, tasks: list[asyncio.Task]) -> None:
         """Toggles between showing progress bar and logging on INFO level.
 
@@ -278,15 +294,15 @@ class SfdcConnector():
         :param session: Shared asyncio session.
         :type session: aiohttp.ClientSession
         """
-        
+
         tasks = self._create_async_tasks(reports, session)
 
         await self._toggle_progress_bar(tasks)
 
         await asyncio.gather(*tasks)
-        
+
         return None
-    
+
     async def handle_requests(self, reports: list[ReportProtocol]) -> None:
         """Creates session and process asynchronous tasks.
 
