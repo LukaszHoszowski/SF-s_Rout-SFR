@@ -125,7 +125,7 @@ SFDC supports export GET requests -> `?export=csv&enc=UTF-8&isdtp=p1` supplement
 
 Requests are send out asynchronously to speed things up and restrain memory consumption to bare minimum. Once request will fail, regardless of that what has caused failure, SFR will retry. Limit of attempts has been set to **20**. Once request is successful response  is saved in Report object and put to the queue for further processing.
 
-## File handler
+## Handler
 
 Thread based solution for saving request responses to a file. At the moment only CSV files are supported.
 

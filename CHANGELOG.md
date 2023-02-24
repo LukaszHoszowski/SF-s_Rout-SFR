@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] - 2023-02-24
+### Added
+- new class -> Config has been added
+
+### Changed
+- logic separation between components
+- everything related to configuration moved to Config
+- documentation
+
 ## [0.1.2] - 2023-02-21
 ### Added
 - CLI params handling by Click
