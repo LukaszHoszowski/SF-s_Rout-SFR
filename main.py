@@ -38,8 +38,9 @@ def main(cli_reports_list_path, cli_report, cli_path, cli_threads, cli_stdout_lo
     logger_configurer(cli_stdout_loglevel, cli_file_loglevel, verbose)
     logger_main.info('SFR started')
 
-    config = Config(cli_reports_list_path, cli_report, cli_path, cli_threads)
     queue = Queue()
+
+    config = Config(cli_reports_list_path, cli_report, cli_path, cli_threads)
     connector = SfdcConnector(queue, verbose=verbose)
     container = ReportsContainer(config.report_params_list, config.summary_report_path)
     WorkerFactory(queue, threads=config.threads)
