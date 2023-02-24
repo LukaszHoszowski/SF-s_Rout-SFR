@@ -3,13 +3,18 @@ import logging
 import logging.handlers
 
 
-def logger_configurer(cli_stdout_loglevel, cli_file_loglevel, verbose) -> None:
+def logger_configurer(cli_stdout_loglevel: str, cli_file_loglevel: str, verbose: bool) -> None:
     """
-        Sets the configuration for logger instance. Supports STDOUT logger and ROTATING FILE logger.
+    Configures logger settings for file and stdout handlers.
 
-            Returns:
-                None
+    :param cli_stdout_loglevel: LogLevel for stdout logger handler based on CLI option. Defaults to ERROR.
+    :type cli_stdout_loglevel: str
+    :param cli_file_loglevel: LogLevel for file logger handler based on CLI option. Defaults to INFO.
+    :type cli_stdout_loglevel: str
+    :param verbose: Flag toggling LogLevel for stdout logger handler, if True sets to ERROR, else INFO.
+    :type verbose: str
     """
+
     levels = {
         'critical': logging.CRITICAL,
         'error': logging.ERROR,
@@ -18,10 +23,10 @@ def logger_configurer(cli_stdout_loglevel, cli_file_loglevel, verbose) -> None:
         'info': logging.INFO,
         'debug': logging.DEBUG
     }
-    
+
     if verbose:
         slevel = levels.get(cli_stdout_loglevel.lower(), logging.ERROR)
-    else: 
+    else:
         slevel = 20
 
     flevel = levels.get(cli_file_loglevel.lower(), logging.INFO)
@@ -29,17 +34,19 @@ def logger_configurer(cli_stdout_loglevel, cli_file_loglevel, verbose) -> None:
     logger = logging.getLogger()
     logger.setLevel(slevel)
 
-    log_path = os.path.join(os.path.abspath(__file__), '..', '..', './logs/sfr.log')
+    log_path = os.path.join(os.path.abspath(__file__),
+                            '..', '..', './logs/sfr.log')
 
-    handler_f = logging.handlers.RotatingFileHandler(log_path, 'a', 1_000_000, 3)
+    handler_f = logging.handlers.RotatingFileHandler(
+        log_path, 'a', 1_000_000, 3)
     handler_s = logging.StreamHandler()
-    
+
     handler_s.setLevel(flevel)
     formatter = logging.Formatter('%(asctime)-20s| %(levelname)-8s| %(processName)-12s| '
                                   '%(message)s', '%Y-%m-%d %H:%M:%S')
     handler_f.setFormatter(formatter)
     handler_s.setFormatter(formatter)
-    
+
     logger.addHandler(handler_f)
     logger.addHandler(handler_s)
 
