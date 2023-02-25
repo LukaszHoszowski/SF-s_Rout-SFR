@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>components.config &mdash; SFR 0.1.3 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            SFR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../components.html">components package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">SFR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">components.config</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for components.config</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Protocol</span>
+<span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+
+<span class="kn">from</span> <span class="nn">components.exceptions</span> <span class="kn">import</span> <span class="n">EnvFileNotPresent</span>
+
+
+<span class="n">logger_main</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ConfigProtocol"><a class="viewcode-back" href="../../components.html#components.config.ConfigProtocol">[docs]</a><span class="k">class</span> <span class="nc">ConfigProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol class for config object.</span>
+
+<span class="sd">    :param cli_reports_list_path: CLI argument for input report list path.</span>
+<span class="sd">    :type cli_reports_list_path: str</span>
+<span class="sd">    :param cli_report: CLI argument for single report params.</span>
+<span class="sd">    :type cli_report: str</span>
+<span class="sd">    :param cli_path: CLI argument for save location path override.</span>
+<span class="sd">    :type cli_path: str</span>
+<span class="sd">    :param cli_threads: CLI argument for number of threads to use.</span>
+<span class="sd">    :type cli_threads: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">cli_reports_list_path</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">cli_report</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">cli_path</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">cli_threads</span><span class="p">:</span> <span class="nb">int</span>
+
+<div class="viewcode-block" id="ConfigProtocol.load_env_file"><a class="viewcode-back" href="../../components.html#components.config.ConfigProtocol.load_env_file">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">load_env_file</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads system environment variables.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span></div></div>
+
+
+<div class="viewcode-block" id="Config"><a class="viewcode-back" href="../../components.html#components.config.Config">[docs]</a><span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Concrete class representing Config object. Contains entire configuration required for a program.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">cli_reports_list_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">cli_report</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">cli_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">cli_threads</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Concrete class representing ReportContainer object. </span>
+
+<span class="sd">        :param cli_reports_list_path: CLI argument for input report list path.</span>
+<span class="sd">        :type cli_reports_list_path: str</span>
+<span class="sd">        :param cli_report: CLI argument for single report params.</span>
+<span class="sd">        :type cli_report: str</span>
+<span class="sd">        :param cli_path: CLI argument for save location path override.</span>
+<span class="sd">        :type cli_path: str</span>
+<span class="sd">        :param cli_threads: CLI argument for number of threads to use.</span>
+<span class="sd">        :type cli_threads: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_env_file</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cli_reports_list_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">cli_reports_list_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cli_report</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">cli_report</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+            <span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">cli_report</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cli_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">cli_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summary_report_path</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;SUMMARY_REPORTS_PATH&quot;</span><span class="p">))))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cli_threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">cli_threads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;path&#39;</span><span class="p">,</span> <span class="s1">&#39;params&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reports_list_path</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_reports_list_path</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report_params_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span>
+                                           <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_input_report</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_define_number_of_threads</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Config.load_env_file"><a class="viewcode-back" href="../../components.html#components.config.Config.load_env_file">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">load_env_file</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads .env config file from root folder.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loading .env parameters&#39;</span><span class="p">)</span>
+            <span class="n">load_dotenv</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">EnvFileNotPresent</span><span class="p">:</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s1">&#39;.env file missing&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="k">def</span> <span class="nf">_define_number_of_threads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Defines number of threads. By default number of threads is set to half of available threads.</span>
+<span class="sd">        If threads value is not available number of threds will be set to 2. </span>
+<span class="sd">        If threads number has been defined in CLI configuration threads will be equal to this number. </span>
+<span class="sd">        If CLI report is filled (single report mode) then number of threads will be automatically set to 1  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">4</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli_threads</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli_threads</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli_report</span> <span class="k">else</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">_define_reports_list_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli_reports_list_path</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cli_reports_list_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;DEF_REPORTS_LIST_PATH&quot;</span><span class="p">))))</span>
+
+    <span class="k">def</span> <span class="nf">_input_report_path_cast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_kwargs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Casts value of `path` key into Path object. </span>
+
+<span class="sd">        :param object_kwargs: Colection of object parameters</span>
+<span class="sd">        :type object_kwargs: list[dict[str, Any]]</span>
+<span class="sd">        :return: Collection of object parameters with `path` casted to Path object </span>
+<span class="sd">        :rtype: list[dict[str, str | PathLike]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Parsing input reports - casting &#39;path&#39; to Path object&quot;</span><span class="p">)</span>
+
+        <span class="p">[</span><span class="nb">dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="n">Path</span><span class="p">(</span><span class="nb">dict</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">])})</span> <span class="k">for</span> <span class="nb">dict</span> <span class="ow">in</span> <span class="n">object_kwargs</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">object_kwargs</span>
+
+    <span class="k">def</span> <span class="nf">_input_report_single_mode_override</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads parameters taken from CLI. Returns parsed parameters into object kwargs. </span>
+
+<span class="sd">        :return: collection of single object kwargs (parameters) based on CLI argument</span>
+<span class="sd">        :rtype: list[dict[str, str]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Parsing input reports - single mode report&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cli_report</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Parsing input reports - single mode report | optional_params not present&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cli_report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli_report</span><span class="p">))]</span>
+
+    <span class="k">def</span> <span class="nf">_input_report_csv_standard_file_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads parameteres taken from input CSV. Returns parsed parameters into objects kwargs.</span>
+
+<span class="sd">        :return: collection of objects kwargs (parameters) based on input CSV</span>
+<span class="sd">        :rtype: list[dict[str, str]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Parsing input reports - standard csv mode report&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reports_list_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
+            <span class="n">csv_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csv_file</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Parsing input reports - standard csv mode report - skipping header&quot;</span><span class="p">)</span>
+            <span class="nb">next</span><span class="p">(</span><span class="n">csv_reader</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span> <span class="k">for</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">csv_reader</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_input_report_path_override</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_kwargs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Replaces value of `path` kwarg parameter of the object with `path` value from CLI argument.</span>
+
+<span class="sd">        :param object_kwargs: Colection of object parameters</span>
+<span class="sd">        :type object_kwargs: list[dict[str, str]]</span>
+<span class="sd">        :return: Collection of object parameters with `path` replaced with value of `path` CLI argument </span>
+<span class="sd">        :rtype: list[dict[str, str]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Parsing input reports - report path override&quot;</span><span class="p">)</span>
+        <span class="p">[</span><span class="nb">dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli_path</span><span class="p">})</span> <span class="k">for</span> <span class="nb">dict</span> <span class="ow">in</span> <span class="n">object_kwargs</span><span class="p">]</span>
+        <span class="c1"># TODO map(lambda dict: dict.update({&#39;path&#39;: self.cli_path}), object_kwargs)</span>
+
+        <span class="k">return</span> <span class="n">object_kwargs</span>
+
+    <span class="k">def</span> <span class="nf">_parse_input_report</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Orchestrating function for parsing parameters for input reports.</span>
+
+<span class="sd">        :return: Collection of ready to use object kwargs.</span>
+<span class="sd">        :rtype: list[dict[str, Any]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Parsing input reports&quot;</span><span class="p">)</span>
+
+        <span class="n">_temp_report_params</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli_report</span><span class="p">:</span>
+            <span class="n">_temp_report_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_report_single_mode_override</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_temp_report_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_report_csv_standard_file_mode</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cli_path</span><span class="p">:</span>
+            <span class="n">_temp_report_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_report_path_override</span><span class="p">(</span>
+                <span class="n">_temp_report_params</span><span class="p">)</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Input reports successfully generated&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_report_path_cast</span><span class="p">(</span><span class="n">_temp_report_params</span><span class="p">)</span></div>
+    
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Lukasz Hoszowski.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

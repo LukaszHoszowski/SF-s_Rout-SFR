@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>components.connectors &mdash; SFR 0.1.3 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            SFR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../components.html">components package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">SFR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">components.connectors</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for components.connectors</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">aiohttp</span>
+<span class="kn">import</span> <span class="nn">browser_cookie3</span>
+<span class="kn">import</span> <span class="nn">webbrowser</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">runtime_checkable</span>
+<span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Queue</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">tqdm.asyncio</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<span class="kn">from</span> <span class="nn">components.containers</span> <span class="kn">import</span> <span class="n">ReportProtocol</span>
+
+
+<span class="n">logger_main</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Connector"><a class="viewcode-back" href="../../components.html#components.connectors.Connector">[docs]</a><span class="nd">@runtime_checkable</span>
+<span class="k">class</span> <span class="nc">Connector</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol class for connector object.</span>
+
+<span class="sd">    :param queue: Shared queue object.</span>
+<span class="sd">    :type queue: Queue</span>
+<span class="sd">    :param verbose: CLI parameter used as switch between progress bar and logging to stdout on INFO level.</span>
+<span class="sd">    :type verbose: bool</span>
+<span class="sd">    :param timeout: Request&#39;s timeout value in seconds.</span>
+<span class="sd">    :type timeout: int</span>
+<span class="sd">    :param headers: Headers required to establish the connection.</span>
+<span class="sd">    :type headers: dict[str, str]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">queue</span><span class="p">:</span> <span class="n">Queue</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Connector.check_connection"><a class="viewcode-back" href="../../components.html#components.connectors.Connector.check_connection">[docs]</a>    <span class="k">def</span> <span class="nf">check_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks connection with given domain.</span>
+
+<span class="sd">        :return: Flag, True if connection is established, False otherwise.</span>
+<span class="sd">        :rtype: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span></div>
+
+<div class="viewcode-block" id="Connector.report_gathering"><a class="viewcode-back" href="../../components.html#components.connectors.Connector.report_gathering">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">report_gathering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reports</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ReportProtocol</span><span class="p">],</span> <span class="n">session</span><span class="p">:</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Collects asynchronous responses from the servers.</span>
+
+<span class="sd">        :param reports: Collection of ReportProtocol objects.</span>
+<span class="sd">        :type reports: list[ReportProt]</span>
+<span class="sd">        :param session: HTTP client session object to handle request in transaction.</span>
+<span class="sd">        :type session: aiohttp.ClientSession</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span></div></div>
+
+
+<div class="viewcode-block" id="SfdcConnector"><a class="viewcode-back" href="../../components.html#components.connectors.SfdcConnector">[docs]</a><span class="k">class</span> <span class="nc">SfdcConnector</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Concrete class representing Connector object for SFDC</span>
+
+<span class="sd">    :param queue: Shared queue object.</span>
+<span class="sd">    :type queue: Queue</span>
+<span class="sd">    :param verbose: CLI parameter used as switch between progress bar and logging to stdout on INFO level. Defaults to False.</span>
+<span class="sd">    :type timeout: int</span>
+<span class="sd">    :param timeout: Request&#39;s timeout value in seconds. Defaults to 900.</span>
+<span class="sd">    :type timeout: int</span>
+<span class="sd">    :param headers: Headers required to establish the connection. Defaults to {&#39;Content-Type&#39;: &#39;application/csv&#39;, &#39;X-PrettyPrint&#39;: &#39;1&#39;}.</span>
+<span class="sd">    :type headers: dict[str, str]</span>
+<span class="sd">    :param export_params: Default parameters required by SFDC. Defaults to &#39;?export=csv&amp;enc=UTF-8&amp;isdtp=p1&#39;.</span>
+<span class="sd">    :type export_params: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">queue</span><span class="p">:</span> <span class="n">Queue</span><span class="p">,</span>
+                 <span class="o">*</span><span class="p">,</span>
+                 <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">900</span><span class="p">,</span>
+                 <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/csv&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;X-PrettyPrint&#39;</span><span class="p">:</span> <span class="s1">&#39;1&#39;</span><span class="p">}):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor method for SfdcConnector, automatically checks connection after initialization.</span>
+
+<span class="sd">        :param queue: Shared, thread-safe queue.</span>
+<span class="sd">        :type queue: Queue</span>
+<span class="sd">        :param verbose: Flag, if True switches to verbose mode and changes loglevel for stdout handler to INFO, if Fales shows progress bar. Defaults to False.</span>
+<span class="sd">        :type verbose: bool</span>
+<span class="sd">        :param timeout: Response timeout in seconds. Defaults to 900.</span>
+<span class="sd">        :type timeout: int</span>
+<span class="sd">        :param headers: Headers for the request. Defaults to {&#39;Content-Type&#39;: &#39;application/csv&#39;, &#39;X-PrettyPrint&#39;: &#39;1&#39;}.</span>
+<span class="sd">        :type headers: dict[str, str]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;SFDC_DOMAIN&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intercept_sid</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_path</span> <span class="o">=</span> <span class="s1">&#39;&quot;C:</span><span class="se">\\</span><span class="s1">Program Files (x86)</span><span class="se">\\</span><span class="s1">Microsoft</span><span class="se">\\</span><span class="s1">Edge</span><span class="se">\\</span><span class="s1">Application</span><span class="se">\\</span><span class="s1">msedge.exe&quot; --profile-directory=Default </span><span class="si">%s</span><span class="s1">&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_connection</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_convert_domain_for_cookies_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts domain as key in cookier for sid lookup.</span>
+
+<span class="sd">        :return: Converted url complaiant with cookies keys.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Parsing domain key for cookies&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;https://&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_intercept_sid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Intercepts sid from MS Edge&#39;s CookieJar.</span>
+
+<span class="sd">        :return: Intercepted `sid` or empty string if `sid` doesn&#39;t exist.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SID interception started&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Trying to access MS Edge&#39;s CookieJar&quot;</span><span class="p">)</span>
+            <span class="n">cookie_jar</span> <span class="o">=</span> <span class="n">browser_cookie3</span><span class="o">.</span><span class="n">edge</span><span class="p">()</span>
+
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Retrieving SID entry from CookieJar&quot;</span><span class="p">)</span>
+            <span class="n">sid</span> <span class="o">=</span> <span class="p">[</span><span class="n">cookie</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">cookie</span> <span class="ow">in</span> <span class="n">cookie_jar</span> <span class="k">if</span> <span class="n">cookie</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span>
+                   <span class="s1">&#39;sid&#39;</span> <span class="ow">and</span> <span class="n">cookie</span><span class="o">.</span><span class="n">domain</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_domain_for_cookies_lookup</span><span class="p">()]</span>
+
+            <span class="k">return</span> <span class="n">sid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;SID entry not there&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_open_sfdc_site</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Opens SFDC website on given domain url if `sid`</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s1">&#39;SID not found! -&gt; Login to SFDC -&gt; SalesForce webpage will open shortly&#39;</span><span class="p">)</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Openning SFDC webside to log in to SalesForce&#39;</span><span class="p">)</span>
+        <span class="n">webbrowser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_path</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">)</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Starting 30 sec sleep to let user log in to SalesForce&quot;</span><span class="p">)</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sid</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intercept_sid</span><span class="p">()</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;intercepting SID! Hold on tight!&#39;</span><span class="p">)</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_parse_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parses headers for request.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Parsing headers for SFDC request check&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Authorization&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Bearer &#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sid</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="SfdcConnector.check_connection"><a class="viewcode-back" href="../../components.html#components.connectors.SfdcConnector.check_connection">[docs]</a>    <span class="k">def</span> <span class="nf">check_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks the connection with given domain.</span>
+
+<span class="sd">        :return: Flag, True if connection was successful, False wasn&#39;t.</span>
+<span class="sd">        :rtype: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SID checking in progress ...&quot;</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sid</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_open_sfdc_site</span><span class="p">()</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SID found!&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parse_headers</span><span class="p">()</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Checking SID validity&quot;</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span>
+                                <span class="n">cookies</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;sid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sid</span><span class="p">},</span>
+                                <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Cache-Control&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;private&#39;</span><span class="p">:</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SID ok!&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s1">&#39;SID not ok!!!&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sid</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+    <span class="k">def</span> <span class="nf">_parse_report_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ReportProtocol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parses report object url.</span>
+
+<span class="sd">        :param report: Instance of `ReportProtocol`.</span>
+<span class="sd">        :type report: ReportProtocol</span>
+<span class="sd">        :return: Parsed url.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">+</span> <span class="n">report</span><span class="o">.</span><span class="n">id</span> <span class="o">+</span> <span class="n">report</span><span class="o">.</span><span class="n">export_params</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_request_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ReportProtocol</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sends asynchronous request to given domain with given parameters within shared session. Checks response status:</span>
+<span class="sd">        - 200: response is saved in `ReportProtocol.response`, `ReportProtocol.valid` set to True, ReportProtocol is being put to the `queue`.</span>
+<span class="sd">        - 404: error in response, `ReportProtocol.valid` set to False, no retries.</span>
+<span class="sd">        - 500: request timeour, `ReportProtocol.valid` set to False, another attempt.</span>
+<span class="sd">        - *: unknown error, `ReportProtocol.valid` set to False, another attempt.</span>
+
+<span class="sd">        :param report: Instance of `ReportProtocol`.</span>
+<span class="sd">        :type report: ReportProtocol</span>
+<span class="sd">        :param session: Shared session object.</span>
+<span class="sd">        :type session: aiohttp.ClientSession</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">created_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+        <span class="n">report_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_report_url</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> -&gt; Sending request&quot;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s2">&quot;Sending asynchronous report request with params: </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">report_url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">report</span><span class="o">.</span><span class="n">valid</span> <span class="ow">and</span> <span class="n">report</span><span class="o">.</span><span class="n">attempt_count</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">report_url</span><span class="p">,</span>
+                                   <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span>
+                                   <span class="n">cookies</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;sid&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sid</span><span class="p">)},</span>
+                                   <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">,</span>
+                                   <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+
+                <span class="n">report</span><span class="o">.</span><span class="n">attempt_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                    <span class="n">logger_main</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> -&gt; Request successful, retrieving content&quot;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">report</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+                        <span class="n">report</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                            <span class="s2">&quot;Sending the content to the queue for processing, </span><span class="si">%s</span><span class="s2"> elements in the queue before transfer&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">qsize</span><span class="p">())</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+                        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                            <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> succesfuly downloaded and put to the queue&#39;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientPayloadError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">logger_main</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is invalid, Unexpected end of stream, SFDC just broke the connection&#39;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                        <span class="k">continue</span>
+                <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
+                    <span class="n">logger_main</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is invalid, Report does not exist - check ID, SFDC respond with status </span><span class="si">%s</span><span class="s2"> - </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">reason</span><span class="p">)</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">break</span>
+                <span class="k">elif</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="mi">500</span><span class="p">:</span>
+                    <span class="n">logger_main</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is invalid, Timeout, SFDC respond with status </span><span class="si">%s</span><span class="s2"> - </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">reason</span><span class="p">)</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logger_main</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is invalid, Unknown Error, SFDC respond with status </span><span class="si">%s</span><span class="s2"> - </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">reason</span><span class="p">)</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_toggle_progress_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tasks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Toggles between showing progress bar and logging on INFO level.</span>
+
+<span class="sd">        :param tasks: Collection of asynchronous request tasks.</span>
+<span class="sd">        :type tasks: list[asyncio.Task]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="p">[</span><span class="k">await</span> <span class="n">task_</span> <span class="k">for</span> <span class="n">task_</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">as_completed</span><span class="p">(</span><span class="n">tasks</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">tasks</span><span class="p">))]</span>
+
+    <span class="k">def</span> <span class="nf">_create_async_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reports</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ReportProtocol</span><span class="p">],</span> <span class="n">session</span><span class="p">:</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">Task</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates collection of asynchronous request tasks. </span>
+
+<span class="sd">        :param reports: Collection of `ReportsProtocol&#39; instances.</span>
+<span class="sd">        :type reports: list[ReportProtocol]</span>
+<span class="sd">        :param session: Shared, asynchronous session.</span>
+<span class="sd">        :type session: aiohttp.ClientSession</span>
+<span class="sd">        :return: Collection of asynchronous request tasks.</span>
+<span class="sd">        :rtype: list[asyncio.Task]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating tasks for asynchronous processing&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_request_report</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">session</span><span class="p">))</span> <span class="k">for</span> <span class="n">report</span> <span class="ow">in</span> <span class="n">reports</span><span class="p">]</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_report_request_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reports</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ReportProtocol</span><span class="p">],</span> <span class="n">session</span><span class="p">:</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Orchestrates entire process of processing tasks.</span>
+
+<span class="sd">        :param reports: Collection of `ReportProtocol` instances.</span>
+<span class="sd">        :type reports: list[ReportProtocol]</span>
+<span class="sd">        :param session: Shared asyncio session.</span>
+<span class="sd">        :type session: aiohttp.ClientSession</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">tasks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_async_tasks</span><span class="p">(</span><span class="n">reports</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_toggle_progress_bar</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>
+
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="SfdcConnector.handle_requests"><a class="viewcode-back" href="../../components.html#components.connectors.SfdcConnector.handle_requests">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">handle_requests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reports</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ReportProtocol</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates session and process asynchronous tasks.</span>
+
+<span class="sd">        :param reports: Collection of `ReportProtocol` instances.</span>
+<span class="sd">        :type reports: list[ReportProtocol]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Awaiting responses&quot;</span><span class="p">)</span>
+        <span class="n">timeout</span> <span class="o">=</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientTimeout</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">)</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_report_request_all</span><span class="p">(</span><span class="n">reports</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Lukasz Hoszowski.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

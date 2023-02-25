@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>components.handlers &mdash; SFR 0.1.3 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            SFR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../components.html">components package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">SFR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">components.handlers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for components.handlers</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Queue</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span><span class="p">,</span> <span class="n">current_thread</span><span class="p">,</span> <span class="n">active_count</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NoReturn</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">runtime_checkable</span>
+
+<span class="kn">from</span> <span class="nn">components.containers</span> <span class="kn">import</span> <span class="n">ReportProtocol</span>
+
+
+<span class="n">logger_main</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="WorkerFactoryProtocol"><a class="viewcode-back" href="../../components.html#components.handlers.WorkerFactoryProtocol">[docs]</a><span class="nd">@runtime_checkable</span>
+<span class="k">class</span> <span class="nc">WorkerFactoryProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol class for worker factory objects.</span>
+
+<span class="sd">    :param queue: Shared, thread-safe queue.</span>
+<span class="sd">    :type queue: Queue</span>
+<span class="sd">    :param threads: Number of threads, equal to number of Workers to be deployed.</span>
+<span class="sd">    :type threads: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">queue</span><span class="p">:</span> <span class="n">Queue</span>
+    <span class="n">threads</span><span class="p">:</span> <span class="nb">int</span>
+
+<div class="viewcode-block" id="WorkerFactoryProtocol.create_workers"><a class="viewcode-back" href="../../components.html#components.handlers.WorkerFactoryProtocol.create_workers">[docs]</a>    <span class="k">def</span> <span class="nf">create_workers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates workers on independent threads</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span></div>
+
+<div class="viewcode-block" id="WorkerFactoryProtocol.active_workers"><a class="viewcode-back" href="../../components.html#components.handlers.WorkerFactoryProtocol.active_workers">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">active_workers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Counts active works in current time.</span>
+
+<span class="sd">        :return: Number of active workers.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span></div></div>
+
+
+<div class="viewcode-block" id="WorkerProtocol"><a class="viewcode-back" href="../../components.html#components.handlers.WorkerProtocol">[docs]</a><span class="nd">@runtime_checkable</span>
+<span class="k">class</span> <span class="nc">WorkerProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol class for worker factory objects.</span>
+
+<span class="sd">    :param queue: Shared, thread-safe queue.</span>
+<span class="sd">    :type queue: Queue</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_read_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ReportProtocol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads the stream of data kept in Report object via Pandas read method. Deletes response content from the object.</span>
+
+<span class="sd">        :param report: Instance of the ReportProtocol object.</span>
+<span class="sd">        :type report: ReportProtocol</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">_save_to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ReportProtocol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves readed data to CSV file using Pandas save method.</span>
+
+<span class="sd">        :param report: Instance of the ReportProtocol object.</span>
+<span class="sd">        :type report: ReportProtocol</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">_erase_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ReportProtocol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Erases the report data.</span>
+
+<span class="sd">        :param report: Instance of the ReportProtocol object.</span>
+<span class="sd">        :type report: ReportProtocol</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span>
+
+<div class="viewcode-block" id="WorkerProtocol.report_processing"><a class="viewcode-back" href="../../components.html#components.handlers.WorkerProtocol.report_processing">[docs]</a>    <span class="k">def</span> <span class="nf">report_processing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ReportProtocol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Orchiestrates the report processing.</span>
+
+<span class="sd">        :param report: Instance of the ReportProtocol object.</span>
+<span class="sd">        :type report: ReportProtocol</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span></div>
+
+<div class="viewcode-block" id="WorkerProtocol.run"><a class="viewcode-back" href="../../components.html#components.handlers.WorkerProtocol.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts listner process on sepearet thread, awaits objects in the queue.</span>
+
+<span class="sd">        :return: Method never returns.</span>
+<span class="sd">        :rtype: NoReturn</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span></div></div>
+
+
+<div class="viewcode-block" id="WorkerFactory"><a class="viewcode-back" href="../../components.html#components.handlers.WorkerFactory">[docs]</a><span class="k">class</span> <span class="nc">WorkerFactory</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Concrete class representing WorkerFactory object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">queue</span><span class="p">:</span> <span class="n">Queue</span><span class="p">,</span>
+                 <span class="o">*</span><span class="p">,</span>
+                 <span class="n">threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor method for WorkerFactory, automatically creates and deploys workers after initialization.</span>
+
+<span class="sd">        :param queue: Shared, thread-safe queue.</span>
+<span class="sd">        :type queue: Queue</span>
+<span class="sd">        :param threads: Number of threads, equal to number of Workers to be deployed. Defaults to 1.</span>
+<span class="sd">        :type threads: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="p">:</span> <span class="n">Queue</span> <span class="o">=</span> <span class="n">queue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">threads</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_workers</span><span class="p">()</span>
+
+<div class="viewcode-block" id="WorkerFactory.create_workers"><a class="viewcode-back" href="../../components.html#components.handlers.WorkerFactory.create_workers">[docs]</a>    <span class="k">def</span> <span class="nf">create_workers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deploys given number of workers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">threads</span><span class="p">):</span>
+            <span class="n">worker</span> <span class="o">=</span> <span class="n">Worker</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="p">)</span>
+            <span class="n">worker</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Slave-</span><span class="si">{</span><span class="n">num</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">worker</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">worker</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="WorkerFactory.active_workers"><a class="viewcode-back" href="../../components.html#components.handlers.WorkerFactory.active_workers">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">active_workers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns number of currently active workers.</span>
+
+<span class="sd">        :return: Number of workers.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">active_count</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span></div></div>
+
+
+<div class="viewcode-block" id="Worker"><a class="viewcode-back" href="../../components.html#components.handlers.Worker">[docs]</a><span class="k">class</span> <span class="nc">Worker</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Concrete class representing Worker object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queue</span><span class="p">:</span> <span class="n">Queue</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor method for Worker.</span>
+
+<span class="sd">        :param queue: Shared, thread-safe queue.</span>
+<span class="sd">        :type queue: Queue</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span>
+
+    <span class="k">def</span> <span class="nf">_read_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ReportProtocol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads report&#39;s response and save it as `content` atribute. Erases saved response. </span>
+
+<span class="sd">        :param report: Instance of the ReportProtocol object.</span>
+<span class="sd">        :type report: ReportProtocol</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reading content of </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">response</span><span class="p">),</span>
+                                         <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;string&#39;</span><span class="p">,</span>
+                                         <span class="n">low_memory</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">pd</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">EmptyDataError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> timeouted, attmpts: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                                <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">attempt_count</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">downloaded</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;Removing last 5 lines, footer of </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_parse_save_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ReportProtocol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parses path to save location.</span>
+
+<span class="sd">        :param report: Instance of the ReportProtocol object.</span>
+<span class="sd">        :type report: ReportProtocol</span>
+<span class="sd">        :return: Path to save location</span>
+<span class="sd">        :rtype: os.PathLike</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">path</span><span class="p">),</span><span class="w"> </span><span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">])</span><span class="si">}</span><span class="s1">.csv&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_save_to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ReportProtocol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves report content to CSV file. Sets object flags.</span>
+
+<span class="sd">        :param report: Instance of the ReportProtocol object.</span>
+<span class="sd">        :type report: ReportProtocol</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">file_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_save_path</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Parsing path for </span><span class="si">%s</span><span class="s1"> -&gt; </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is saving file for </span><span class="si">%s</span><span class="s1"> -&gt; </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                          <span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span>
+                                  <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">pd</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">ParserError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> unexpected end of stream: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                                <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">attempt_count</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">downloaded</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> saved </span><span class="si">%s</span><span class="s1"> -&gt; </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                              <span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">downloaded</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">report</span><span class="o">.</span><span class="n">pull_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">processing_time</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">pull_date</span> <span class="o">-</span> <span class="n">report</span><span class="o">.</span><span class="n">created_date</span>
+
+            <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> succesfully saved by </span><span class="si">%s</span><span class="s1"> at </span><span class="si">%s</span><span class="s1">, operation took: </span><span class="si">%s</span><span class="s1">, file size: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                              <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">pull_date</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">processing_time</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_erase_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ReportProtocol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes report content in ReportProtocol object.</span>
+
+<span class="sd">        :param report: Instance of the ReportProtocol object.</span>
+<span class="sd">        :type report: ReportProtocol</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Deleting response and content for </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Worker.process_report"><a class="viewcode-back" href="../../components.html#components.handlers.Worker.process_report">[docs]</a>    <span class="k">def</span> <span class="nf">process_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">ReportProtocol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Orchiestrates entire process of downloading the report.</span>
+
+<span class="sd">        :param report: Instance of the ReportProtocol object.</span>
+<span class="sd">        :type report: ReportProtocol</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">report</span><span class="o">.</span><span class="n">valid</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_read_stream</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_save_to_csv</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_erase_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">downloaded</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Worker.run"><a class="viewcode-back" href="../../components.html#components.handlers.Worker.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;begins to listen to the queue. Starts processing once will get item from the queue. Sends signal to the queue once task is done.</span>
+
+<span class="sd">        :return: Function never returns.</span>
+<span class="sd">        :rtype: NoReturn</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> starting&#39;</span><span class="p">,</span> <span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">report</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">report</span><span class="p">:</span>
+                <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> processing </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                                  <span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">process_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> failed while processing </span><span class="si">%s</span><span class="s1"> -&gt; </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                <span class="k">finally</span><span class="p">:</span>
+                    <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> finishing </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                                      <span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span></div></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Lukasz Hoszowski.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

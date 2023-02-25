@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>components package &mdash; SFR 0.1.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="src" href="modules.html" />
+    <link rel="prev" title="Introduction" href="intro.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SFR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">components package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-components.config">components.config module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#components.config.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.config.Config.load_env_file"><code class="docutils literal notranslate"><span class="pre">Config.load_env_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#components.config.ConfigProtocol"><code class="docutils literal notranslate"><span class="pre">ConfigProtocol</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.config.ConfigProtocol.cli_path"><code class="docutils literal notranslate"><span class="pre">ConfigProtocol.cli_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.config.ConfigProtocol.cli_report"><code class="docutils literal notranslate"><span class="pre">ConfigProtocol.cli_report</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.config.ConfigProtocol.cli_reports_list_path"><code class="docutils literal notranslate"><span class="pre">ConfigProtocol.cli_reports_list_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.config.ConfigProtocol.cli_threads"><code class="docutils literal notranslate"><span class="pre">ConfigProtocol.cli_threads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.config.ConfigProtocol.load_env_file"><code class="docutils literal notranslate"><span class="pre">ConfigProtocol.load_env_file()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-components.connectors">components.connectors module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#components.connectors.Connector"><code class="docutils literal notranslate"><span class="pre">Connector</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.connectors.Connector.check_connection"><code class="docutils literal notranslate"><span class="pre">Connector.check_connection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.connectors.Connector.headers"><code class="docutils literal notranslate"><span class="pre">Connector.headers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.connectors.Connector.queue"><code class="docutils literal notranslate"><span class="pre">Connector.queue</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.connectors.Connector.report_gathering"><code class="docutils literal notranslate"><span class="pre">Connector.report_gathering()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.connectors.Connector.timeout"><code class="docutils literal notranslate"><span class="pre">Connector.timeout</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.connectors.Connector.verbose"><code class="docutils literal notranslate"><span class="pre">Connector.verbose</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#components.connectors.SfdcConnector"><code class="docutils literal notranslate"><span class="pre">SfdcConnector</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.connectors.SfdcConnector.check_connection"><code class="docutils literal notranslate"><span class="pre">SfdcConnector.check_connection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.connectors.SfdcConnector.handle_requests"><code class="docutils literal notranslate"><span class="pre">SfdcConnector.handle_requests()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-components.containers">components.containers module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#components.containers.ReportProtocol"><code class="docutils literal notranslate"><span class="pre">ReportProtocol</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.attempt_count"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.attempt_count</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.content"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.content</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.created_date"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.created_date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.downloaded"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.downloaded</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.export_params"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.export_params</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.id"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.name"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.path"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.processing_time"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.processing_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.pull_date"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.pull_date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.response"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.response</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.size"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.type"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol.valid"><code class="docutils literal notranslate"><span class="pre">ReportProtocol.valid</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#components.containers.ReportsContainer"><code class="docutils literal notranslate"><span class="pre">ReportsContainer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportsContainer.create_reports"><code class="docutils literal notranslate"><span class="pre">ReportsContainer.create_reports()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportsContainer.create_summary_report"><code class="docutils literal notranslate"><span class="pre">ReportsContainer.create_summary_report()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#components.containers.ReportsContainerProtocol"><code class="docutils literal notranslate"><span class="pre">ReportsContainerProtocol</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportsContainerProtocol.create_reports"><code class="docutils literal notranslate"><span class="pre">ReportsContainerProtocol.create_reports()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportsContainerProtocol.create_summary_report"><code class="docutils literal notranslate"><span class="pre">ReportsContainerProtocol.create_summary_report()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#components.containers.SfdcReport"><code class="docutils literal notranslate"><span class="pre">SfdcReport</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.attempt_count"><code class="docutils literal notranslate"><span class="pre">SfdcReport.attempt_count</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.content"><code class="docutils literal notranslate"><span class="pre">SfdcReport.content</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.created_date"><code class="docutils literal notranslate"><span class="pre">SfdcReport.created_date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.downloaded"><code class="docutils literal notranslate"><span class="pre">SfdcReport.downloaded</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.export_params"><code class="docutils literal notranslate"><span class="pre">SfdcReport.export_params</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.id"><code class="docutils literal notranslate"><span class="pre">SfdcReport.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.name"><code class="docutils literal notranslate"><span class="pre">SfdcReport.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.path"><code class="docutils literal notranslate"><span class="pre">SfdcReport.path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.processing_time"><code class="docutils literal notranslate"><span class="pre">SfdcReport.processing_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.pull_date"><code class="docutils literal notranslate"><span class="pre">SfdcReport.pull_date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.response"><code class="docutils literal notranslate"><span class="pre">SfdcReport.response</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.size"><code class="docutils literal notranslate"><span class="pre">SfdcReport.size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.type"><code class="docutils literal notranslate"><span class="pre">SfdcReport.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport.valid"><code class="docutils literal notranslate"><span class="pre">SfdcReport.valid</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-components.exceptions">components.exceptions module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#components.exceptions.EnvFileNotPresent"><code class="docutils literal notranslate"><span class="pre">EnvFileNotPresent</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.exceptions.EnvFileNotPresent.message"><code class="docutils literal notranslate"><span class="pre">EnvFileNotPresent.message</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#components.exceptions.OutdatedSIDError"><code class="docutils literal notranslate"><span class="pre">OutdatedSIDError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.exceptions.OutdatedSIDError.message"><code class="docutils literal notranslate"><span class="pre">OutdatedSIDError.message</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-components.handlers">components.handlers module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#components.handlers.Worker"><code class="docutils literal notranslate"><span class="pre">Worker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.Worker.process_report"><code class="docutils literal notranslate"><span class="pre">Worker.process_report()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.Worker.run"><code class="docutils literal notranslate"><span class="pre">Worker.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#components.handlers.WorkerFactory"><code class="docutils literal notranslate"><span class="pre">WorkerFactory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.WorkerFactory.active_workers"><code class="docutils literal notranslate"><span class="pre">WorkerFactory.active_workers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.WorkerFactory.create_workers"><code class="docutils literal notranslate"><span class="pre">WorkerFactory.create_workers()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#components.handlers.WorkerFactoryProtocol"><code class="docutils literal notranslate"><span class="pre">WorkerFactoryProtocol</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.WorkerFactoryProtocol.active_workers"><code class="docutils literal notranslate"><span class="pre">WorkerFactoryProtocol.active_workers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.WorkerFactoryProtocol.create_workers"><code class="docutils literal notranslate"><span class="pre">WorkerFactoryProtocol.create_workers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.WorkerFactoryProtocol.queue"><code class="docutils literal notranslate"><span class="pre">WorkerFactoryProtocol.queue</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.WorkerFactoryProtocol.threads"><code class="docutils literal notranslate"><span class="pre">WorkerFactoryProtocol.threads</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#components.handlers.WorkerProtocol"><code class="docutils literal notranslate"><span class="pre">WorkerProtocol</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.WorkerProtocol.report_processing"><code class="docutils literal notranslate"><span class="pre">WorkerProtocol.report_processing()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.WorkerProtocol.run"><code class="docutils literal notranslate"><span class="pre">WorkerProtocol.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-components.loggers">components.loggers module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#components.loggers.logger_configurer"><code class="docutils literal notranslate"><span class="pre">logger_configurer()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-components">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">src</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">components package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-components.config">components.config module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.config.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.config.ConfigProtocol"><code class="docutils literal notranslate"><span class="pre">ConfigProtocol</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-components.connectors">components.connectors module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.connectors.Connector"><code class="docutils literal notranslate"><span class="pre">Connector</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.connectors.SfdcConnector"><code class="docutils literal notranslate"><span class="pre">SfdcConnector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-components.containers">components.containers module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportProtocol"><code class="docutils literal notranslate"><span class="pre">ReportProtocol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportsContainer"><code class="docutils literal notranslate"><span class="pre">ReportsContainer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.ReportsContainerProtocol"><code class="docutils literal notranslate"><span class="pre">ReportsContainerProtocol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.containers.SfdcReport"><code class="docutils literal notranslate"><span class="pre">SfdcReport</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-components.exceptions">components.exceptions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.exceptions.EnvFileNotPresent"><code class="docutils literal notranslate"><span class="pre">EnvFileNotPresent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.exceptions.OutdatedSIDError"><code class="docutils literal notranslate"><span class="pre">OutdatedSIDError</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-components.handlers">components.handlers module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.Worker"><code class="docutils literal notranslate"><span class="pre">Worker</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.WorkerFactory"><code class="docutils literal notranslate"><span class="pre">WorkerFactory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.WorkerFactoryProtocol"><code class="docutils literal notranslate"><span class="pre">WorkerFactoryProtocol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components.handlers.WorkerProtocol"><code class="docutils literal notranslate"><span class="pre">WorkerProtocol</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-components.loggers">components.loggers module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#components.loggers.logger_configurer"><code class="docutils literal notranslate"><span class="pre">logger_configurer()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-components">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="main.html">main module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SFR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">components package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/components.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="components-package">
+<h1>components package<a class="headerlink" href="#components-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-components.config">
+<span id="components-config-module"></span><h2>components.config module<a class="headerlink" href="#module-components.config" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="components.config.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.config.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cli_reports_list_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cli_report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cli_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cli_threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/config.html#Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.config.Config" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Concrete class representing Config object. Contains entire configuration required for a program.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="components.config.Config.load_env_file">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_env_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/components/config.html#Config.load_env_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.config.Config.load_env_file" title="Permalink to this definition"></a></dt>
+<dd><p>Loads .env config file from root folder.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="components.config.ConfigProtocol">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.config.</span></span><span class="sig-name descname"><span class="pre">ConfigProtocol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/config.html#ConfigProtocol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.config.ConfigProtocol" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
+<p>Protocol class for config object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cli_reports_list_path</strong> (<em>str</em>) – CLI argument for input report list path.</p></li>
+<li><p><strong>cli_report</strong> (<em>str</em>) – CLI argument for single report params.</p></li>
+<li><p><strong>cli_path</strong> (<em>str</em>) – CLI argument for save location path override.</p></li>
+<li><p><strong>cli_threads</strong> (<em>int</em>) – CLI argument for number of threads to use.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.config.ConfigProtocol.cli_path">
+<span class="sig-name descname"><span class="pre">cli_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.config.ConfigProtocol.cli_path" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.config.ConfigProtocol.cli_report">
+<span class="sig-name descname"><span class="pre">cli_report</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.config.ConfigProtocol.cli_report" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.config.ConfigProtocol.cli_reports_list_path">
+<span class="sig-name descname"><span class="pre">cli_reports_list_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.config.ConfigProtocol.cli_reports_list_path" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.config.ConfigProtocol.cli_threads">
+<span class="sig-name descname"><span class="pre">cli_threads</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#components.config.ConfigProtocol.cli_threads" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="components.config.ConfigProtocol.load_env_file">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_env_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/components/config.html#ConfigProtocol.load_env_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.config.ConfigProtocol.load_env_file" title="Permalink to this definition"></a></dt>
+<dd><p>Loads system environment variables.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-components.connectors">
+<span id="components-connectors-module"></span><h2>components.connectors module<a class="headerlink" href="#module-components.connectors" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="components.connectors.Connector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.connectors.</span></span><span class="sig-name descname"><span class="pre">Connector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/connectors.html#Connector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.connectors.Connector" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
+<p>Protocol class for connector object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>queue</strong> (<em>Queue</em>) – Shared queue object.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – CLI parameter used as switch between progress bar and logging to stdout on INFO level.</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – Request’s timeout value in seconds.</p></li>
+<li><p><strong>headers</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – Headers required to establish the connection.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="components.connectors.Connector.check_connection">
+<span class="sig-name descname"><span class="pre">check_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/components/connectors.html#Connector.check_connection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.connectors.Connector.check_connection" title="Permalink to this definition"></a></dt>
+<dd><p>Checks connection with given domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Flag, True if connection is established, False otherwise.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.connectors.Connector.headers">
+<span class="sig-name descname"><span class="pre">headers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#components.connectors.Connector.headers" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.connectors.Connector.queue">
+<span class="sig-name descname"><span class="pre">queue</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Queue</span></em><a class="headerlink" href="#components.connectors.Connector.queue" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="components.connectors.Connector.report_gathering">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">report_gathering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reports</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#components.containers.ReportProtocol" title="components.containers.ReportProtocol"><span class="pre">components.containers.ReportProtocol</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ClientSession</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/components/connectors.html#Connector.report_gathering"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.connectors.Connector.report_gathering" title="Permalink to this definition"></a></dt>
+<dd><p>Collects asynchronous responses from the servers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reports</strong> (<em>list</em><em>[</em><em>ReportProt</em><em>]</em>) – Collection of ReportProtocol objects.</p></li>
+<li><p><strong>session</strong> (<em>aiohttp.ClientSession</em>) – HTTP client session object to handle request in transaction.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.connectors.Connector.timeout">
+<span class="sig-name descname"><span class="pre">timeout</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#components.connectors.Connector.timeout" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.connectors.Connector.verbose">
+<span class="sig-name descname"><span class="pre">verbose</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#components.connectors.Connector.verbose" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="components.connectors.SfdcConnector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.connectors.</span></span><span class="sig-name descname"><span class="pre">SfdcConnector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">900</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{'Content-Type':</span> <span class="pre">'application/csv',</span> <span class="pre">'X-PrettyPrint':</span> <span class="pre">'1'}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/connectors.html#SfdcConnector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.connectors.SfdcConnector" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Concrete class representing Connector object for SFDC</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>queue</strong> (<em>Queue</em>) – Shared queue object.</p></li>
+<li><p><strong>verbose</strong> – CLI parameter used as switch between progress bar and logging to stdout on INFO level. Defaults to False.</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – Request’s timeout value in seconds. Defaults to 900.</p></li>
+<li><p><strong>headers</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – Headers required to establish the connection. Defaults to {‘Content-Type’: ‘application/csv’, ‘X-PrettyPrint’: ‘1’}.</p></li>
+<li><p><strong>export_params</strong> (<em>str</em>) – Default parameters required by SFDC. Defaults to ‘?export=csv&amp;enc=UTF-8&amp;isdtp=p1’.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="components.connectors.SfdcConnector.check_connection">
+<span class="sig-name descname"><span class="pre">check_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/components/connectors.html#SfdcConnector.check_connection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.connectors.SfdcConnector.check_connection" title="Permalink to this definition"></a></dt>
+<dd><p>Checks the connection with given domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Flag, True if connection was successful, False wasn’t.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="components.connectors.SfdcConnector.handle_requests">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">handle_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reports</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#components.containers.ReportProtocol" title="components.containers.ReportProtocol"><span class="pre">components.containers.ReportProtocol</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/components/connectors.html#SfdcConnector.handle_requests"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.connectors.SfdcConnector.handle_requests" title="Permalink to this definition"></a></dt>
+<dd><p>Creates session and process asynchronous tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reports</strong> (<em>list</em><em>[</em><a class="reference internal" href="#components.containers.ReportProtocol" title="components.containers.ReportProtocol"><em>ReportProtocol</em></a><em>]</em>) – Collection of <cite>ReportProtocol</cite> instances.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-components.containers">
+<span id="components-containers-module"></span><h2>components.containers module<a class="headerlink" href="#module-components.containers" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.containers.</span></span><span class="sig-name descname"><span class="pre">ReportProtocol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/containers.html#ReportProtocol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.containers.ReportProtocol" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
+<p>Protocol class for report object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>str</em>) – Report type, allowed options [‘SFDC’], type drives connector and report objects selection</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Report name, propagated to report file name</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – Report id, identification number of the report in SFDC</p></li>
+<li><p><strong>path</strong> (<em>PathLike</em>) – Report path, save location for the report in form of Path object</p></li>
+<li><p><strong>export_params</strong> (<em>str</em>) – Default parameters required by SFDC. Defaults to ‘?export=csv&amp;enc=UTF-8&amp;isdtp=p1’.</p></li>
+<li><p><strong>downloaded</strong> (<em>bool</em>) – Flag indicating whether the reports has been succesfully downloaded or not</p></li>
+<li><p><strong>valid</strong> (<em>bool</em>) – Flag indicating whether the response has been succesfully retrieved or not</p></li>
+<li><p><strong>created_date</strong> (<em>datetime</em>) – Report save completition date</p></li>
+<li><p><strong>pull_date</strong> (<em>timedelta</em>) – Report response completition date</p></li>
+<li><p><strong>processing_time</strong> – The time it took to process the report in seconds</p></li>
+<li><p><strong>attempt_count</strong> (<em>int</em>) – Number of attempts to process the report</p></li>
+<li><p><strong>size</strong> (<em>float</em>) – Size of saved report file in Mb</p></li>
+<li><p><strong>response</strong> (<em>str</em>) – Container for request response</p></li>
+<li><p><strong>content</strong> (<em>DataFrame</em>) – Pandas DataFrame based on response</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.attempt_count">
+<span class="sig-name descname"><span class="pre">attempt_count</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#components.containers.ReportProtocol.attempt_count" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.content">
+<span class="sig-name descname"><span class="pre">content</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DataFrame</span></em><a class="headerlink" href="#components.containers.ReportProtocol.content" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.created_date">
+<span class="sig-name descname"><span class="pre">created_date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></em><a class="headerlink" href="#components.containers.ReportProtocol.created_date" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.downloaded">
+<span class="sig-name descname"><span class="pre">downloaded</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#components.containers.ReportProtocol.downloaded" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.export_params">
+<span class="sig-name descname"><span class="pre">export_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.containers.ReportProtocol.export_params" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.id">
+<span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.containers.ReportProtocol.id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.containers.ReportProtocol.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.path">
+<span class="sig-name descname"><span class="pre">path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">PathLike</span></em><a class="headerlink" href="#components.containers.ReportProtocol.path" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.processing_time">
+<span class="sig-name descname"><span class="pre">processing_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">timedelta</span></em><a class="headerlink" href="#components.containers.ReportProtocol.processing_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.pull_date">
+<span class="sig-name descname"><span class="pre">pull_date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></em><a class="headerlink" href="#components.containers.ReportProtocol.pull_date" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.response">
+<span class="sig-name descname"><span class="pre">response</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.containers.ReportProtocol.response" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.size">
+<span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#components.containers.ReportProtocol.size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.type">
+<span class="sig-name descname"><span class="pre">type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.containers.ReportProtocol.type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.ReportProtocol.valid">
+<span class="sig-name descname"><span class="pre">valid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#components.containers.ReportProtocol.valid" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="components.containers.ReportsContainer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.containers.</span></span><span class="sig-name descname"><span class="pre">ReportsContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reports_params_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary_report_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">PathLike</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/containers.html#ReportsContainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.containers.ReportsContainer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Concrete class representing ReportContainer object.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="components.containers.ReportsContainer.create_reports">
+<span class="sig-name descname"><span class="pre">create_reports</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#components.containers.ReportProtocol" title="components.containers.ReportProtocol"><span class="pre">components.containers.ReportProtocol</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/components/containers.html#ReportsContainer.create_reports"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.containers.ReportsContainer.create_reports" title="Permalink to this definition"></a></dt>
+<dd><p>Orchestrating method to handle report objects factory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Collection of Reports</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[<a class="reference internal" href="#components.containers.SfdcReport" title="components.containers.SfdcReport">SfdcReport</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="components.containers.ReportsContainer.create_summary_report">
+<span class="sig-name descname"><span class="pre">create_summary_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/components/containers.html#ReportsContainer.create_summary_report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.containers.ReportsContainer.create_summary_report" title="Permalink to this definition"></a></dt>
+<dd><p>Creates summary report which consist of all important details regarding reports.
+Report is generated once all the reports are completed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="components.containers.ReportsContainerProtocol">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.containers.</span></span><span class="sig-name descname"><span class="pre">ReportsContainerProtocol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/containers.html#ReportsContainerProtocol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.containers.ReportsContainerProtocol" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
+<p>Protocol class for report container object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>report_params_list</strong> (<em>list</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – Collection of dicts with parameters for object crafting.</p></li>
+<li><p><strong>summary_report_path</strong> (<em>PathLike</em>) – Path to save location of summary report.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="components.containers.ReportsContainerProtocol.create_reports">
+<span class="sig-name descname"><span class="pre">create_reports</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#components.containers.ReportProtocol" title="components.containers.ReportProtocol"><span class="pre">components.containers.ReportProtocol</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/components/containers.html#ReportsContainerProtocol.create_reports"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.containers.ReportsContainerProtocol.create_reports" title="Permalink to this definition"></a></dt>
+<dd><p>Orchestrating method to handle report objects factory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Collection of Reports</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[<a class="reference internal" href="#components.containers.ReportProtocol" title="components.containers.ReportProtocol">ReportProtocol</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="components.containers.ReportsContainerProtocol.create_summary_report">
+<span class="sig-name descname"><span class="pre">create_summary_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/components/containers.html#ReportsContainerProtocol.create_summary_report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.containers.ReportsContainerProtocol.create_summary_report" title="Permalink to this definition"></a></dt>
+<dd><p>Creates summary report which consist of all important details regarding Report objects.
+Summary report is generated once all the reports are completed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="components.containers.SfdcReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.containers.</span></span><span class="sig-name descname"><span class="pre">SfdcReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path:</span> <span class="pre">~os.PathLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_params:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'?export=csv&amp;enc=UTF-8&amp;isdtp=p1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downloaded:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">created_date:</span> <span class="pre">~datetime.datetime</span> <span class="pre">=</span> <span class="pre">datetime.datetime(2023</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">53</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">539658)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pull_date:</span> <span class="pre">~datetime.datetime</span> <span class="pre">=</span> <span class="pre">datetime.datetime(2023</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">53</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">539658)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processing_time:</span> <span class="pre">~datetime.timedelta</span> <span class="pre">=</span> <span class="pre">datetime.timedelta(0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attempt_count:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content:</span> <span class="pre">~pandas.core.frame.DataFrame</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/containers.html#SfdcReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.containers.SfdcReport" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Concrete class representing Report object from SFDC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>str</em>) – Report type, allowed options [‘SFDC’], type drives connector and report objects selection</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Report name, propagated to report file name</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – Report id, identification number of the report in SFDC</p></li>
+<li><p><strong>path</strong> (<em>PathLike</em>) – Report path, save location for the report in form of Path object</p></li>
+<li><p><strong>export_params</strong> (<em>str</em>) – Default parameters required by SFDC. Defaults to ‘?export=csv&amp;enc=UTF-8&amp;isdtp=p1’.</p></li>
+<li><p><strong>downloaded</strong> (<em>bool</em>) – Flag indicating whether the reports has been succesfully downloaded or not. Defaults to False.</p></li>
+<li><p><strong>valid</strong> (<em>bool</em>) – Flag indicating whether the response has been succesfully retrieved or not. Defaults to False.</p></li>
+<li><p><strong>created_date</strong> (<em>datetime</em>) – Report save completition date. Defaults to current datetime.</p></li>
+<li><p><strong>pull_date</strong> (<em>timedelta</em>) – Report response completition date. Defaults to current datetime.</p></li>
+<li><p><strong>processing_time</strong> – The time it took to process the report in seconds. Defaults to 0 microseconds.</p></li>
+<li><p><strong>attempt_count</strong> (<em>int</em>) – Number of attempts to process the report. Defaults to 0 .</p></li>
+<li><p><strong>size</strong> (<em>float</em>) – Size of saved report file in Mb. Defaults to 0.0 .</p></li>
+<li><p><strong>response</strong> (<em>str</em>) – Container for request response. Defaults to empty string.</p></li>
+<li><p><strong>content</strong> (<em>DataFrame</em>) – Pandas DataFrame based on response. Defaults to empty Pandas DataFrame.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.attempt_count">
+<span class="sig-name descname"><span class="pre">attempt_count</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#components.containers.SfdcReport.attempt_count" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.content">
+<span class="sig-name descname"><span class="pre">content</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DataFrame</span></em><a class="headerlink" href="#components.containers.SfdcReport.content" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.created_date">
+<span class="sig-name descname"><span class="pre">created_date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></em><a class="headerlink" href="#components.containers.SfdcReport.created_date" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.downloaded">
+<span class="sig-name descname"><span class="pre">downloaded</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#components.containers.SfdcReport.downloaded" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.export_params">
+<span class="sig-name descname"><span class="pre">export_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.containers.SfdcReport.export_params" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.id">
+<span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.containers.SfdcReport.id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.containers.SfdcReport.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.path">
+<span class="sig-name descname"><span class="pre">path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">PathLike</span></em><a class="headerlink" href="#components.containers.SfdcReport.path" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.processing_time">
+<span class="sig-name descname"><span class="pre">processing_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">timedelta</span></em><a class="headerlink" href="#components.containers.SfdcReport.processing_time" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.pull_date">
+<span class="sig-name descname"><span class="pre">pull_date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></em><a class="headerlink" href="#components.containers.SfdcReport.pull_date" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.response">
+<span class="sig-name descname"><span class="pre">response</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.containers.SfdcReport.response" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.size">
+<span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#components.containers.SfdcReport.size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.type">
+<span class="sig-name descname"><span class="pre">type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#components.containers.SfdcReport.type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.containers.SfdcReport.valid">
+<span class="sig-name descname"><span class="pre">valid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#components.containers.SfdcReport.valid" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-components.exceptions">
+<span id="components-exceptions-module"></span><h2>components.exceptions module<a class="headerlink" href="#module-components.exceptions" title="Permalink to this heading"></a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="components.exceptions.EnvFileNotPresent">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.exceptions.</span></span><span class="sig-name descname"><span class="pre">EnvFileNotPresent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.env</span> <span class="pre">file</span> <span class="pre">not</span> <span class="pre">present</span> <span class="pre">in</span> <span class="pre">main</span> <span class="pre">directory'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/exceptions.html#EnvFileNotPresent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.exceptions.EnvFileNotPresent" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception raised if the .env file is not present in main directory.</p>
+<p>…</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.exceptions.EnvFileNotPresent.message">
+<span class="sig-name descname"><span class="pre">message</span></span><a class="headerlink" href="#components.exceptions.EnvFileNotPresent.message" title="Permalink to this definition"></a></dt>
+<dd><p>explanation of the error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="components.exceptions.OutdatedSIDError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.exceptions.</span></span><span class="sig-name descname"><span class="pre">OutdatedSIDError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Your</span> <span class="pre">SID</span> <span class="pre">is</span> <span class="pre">outdate,</span> <span class="pre">please</span> <span class="pre">provide</span> <span class="pre">recent</span> <span class="pre">SID'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/exceptions.html#OutdatedSIDError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.exceptions.OutdatedSIDError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception raised for errors in the SID value.</p>
+<p>…</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.exceptions.OutdatedSIDError.message">
+<span class="sig-name descname"><span class="pre">message</span></span><a class="headerlink" href="#components.exceptions.OutdatedSIDError.message" title="Permalink to this definition"></a></dt>
+<dd><p>explanation of the error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-components.handlers">
+<span id="components-handlers-module"></span><h2>components.handlers module<a class="headerlink" href="#module-components.handlers" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="components.handlers.Worker">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.handlers.</span></span><span class="sig-name descname"><span class="pre">Worker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Queue</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/handlers.html#Worker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.Worker" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Thread</span></code></p>
+<p>Concrete class representing Worker object.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="components.handlers.Worker.process_report">
+<span class="sig-name descname"><span class="pre">process_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#components.containers.ReportProtocol" title="components.containers.ReportProtocol"><span class="pre">ReportProtocol</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/components/handlers.html#Worker.process_report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.Worker.process_report" title="Permalink to this definition"></a></dt>
+<dd><p>Orchiestrates entire process of downloading the report.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>report</strong> (<a class="reference internal" href="#components.containers.ReportProtocol" title="components.containers.ReportProtocol"><em>ReportProtocol</em></a>) – Instance of the ReportProtocol object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="components.handlers.Worker.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">NoReturn</span></span></span><a class="reference internal" href="_modules/components/handlers.html#Worker.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.Worker.run" title="Permalink to this definition"></a></dt>
+<dd><p>begins to listen to the queue. Starts processing once will get item from the queue. Sends signal to the queue once task is done.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Function never returns.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>NoReturn</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="components.handlers.WorkerFactory">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.handlers.</span></span><span class="sig-name descname"><span class="pre">WorkerFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Queue</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/handlers.html#WorkerFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.WorkerFactory" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Concrete class representing WorkerFactory object.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="components.handlers.WorkerFactory.active_workers">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">active_workers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/components/handlers.html#WorkerFactory.active_workers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.WorkerFactory.active_workers" title="Permalink to this definition"></a></dt>
+<dd><p>Returns number of currently active workers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of workers.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="components.handlers.WorkerFactory.create_workers">
+<span class="sig-name descname"><span class="pre">create_workers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/components/handlers.html#WorkerFactory.create_workers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.WorkerFactory.create_workers" title="Permalink to this definition"></a></dt>
+<dd><p>Deploys given number of workers.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="components.handlers.WorkerFactoryProtocol">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.handlers.</span></span><span class="sig-name descname"><span class="pre">WorkerFactoryProtocol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/handlers.html#WorkerFactoryProtocol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.WorkerFactoryProtocol" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
+<p>Protocol class for worker factory objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>queue</strong> (<em>Queue</em>) – Shared, thread-safe queue.</p></li>
+<li><p><strong>threads</strong> (<em>int</em>) – Number of threads, equal to number of Workers to be deployed.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="components.handlers.WorkerFactoryProtocol.active_workers">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">active_workers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/components/handlers.html#WorkerFactoryProtocol.active_workers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.WorkerFactoryProtocol.active_workers" title="Permalink to this definition"></a></dt>
+<dd><p>Counts active works in current time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of active workers.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="components.handlers.WorkerFactoryProtocol.create_workers">
+<span class="sig-name descname"><span class="pre">create_workers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/components/handlers.html#WorkerFactoryProtocol.create_workers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.WorkerFactoryProtocol.create_workers" title="Permalink to this definition"></a></dt>
+<dd><p>Creates workers on independent threads</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.handlers.WorkerFactoryProtocol.queue">
+<span class="sig-name descname"><span class="pre">queue</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Queue</span></em><a class="headerlink" href="#components.handlers.WorkerFactoryProtocol.queue" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="components.handlers.WorkerFactoryProtocol.threads">
+<span class="sig-name descname"><span class="pre">threads</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#components.handlers.WorkerFactoryProtocol.threads" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="components.handlers.WorkerProtocol">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">components.handlers.</span></span><span class="sig-name descname"><span class="pre">WorkerProtocol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/components/handlers.html#WorkerProtocol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.WorkerProtocol" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
+<p>Protocol class for worker factory objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>queue</strong> (<em>Queue</em>) – Shared, thread-safe queue.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="components.handlers.WorkerProtocol.report_processing">
+<span class="sig-name descname"><span class="pre">report_processing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#components.containers.ReportProtocol" title="components.containers.ReportProtocol"><span class="pre">ReportProtocol</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/components/handlers.html#WorkerProtocol.report_processing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.WorkerProtocol.report_processing" title="Permalink to this definition"></a></dt>
+<dd><p>Orchiestrates the report processing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>report</strong> (<a class="reference internal" href="#components.containers.ReportProtocol" title="components.containers.ReportProtocol"><em>ReportProtocol</em></a>) – Instance of the ReportProtocol object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="components.handlers.WorkerProtocol.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">NoReturn</span></span></span><a class="reference internal" href="_modules/components/handlers.html#WorkerProtocol.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.handlers.WorkerProtocol.run" title="Permalink to this definition"></a></dt>
+<dd><p>Starts listner process on sepearet thread, awaits objects in the queue.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Method never returns.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>NoReturn</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-components.loggers">
+<span id="components-loggers-module"></span><h2>components.loggers module<a class="headerlink" href="#module-components.loggers" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="components.loggers.logger_configurer">
+<span class="sig-prename descclassname"><span class="pre">components.loggers.</span></span><span class="sig-name descname"><span class="pre">logger_configurer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cli_stdout_loglevel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cli_file_loglevel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/components/loggers.html#logger_configurer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#components.loggers.logger_configurer" title="Permalink to this definition"></a></dt>
+<dd><p>Configures logger settings for file and stdout handlers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cli_stdout_loglevel</strong> (<em>str</em>) – LogLevel for stdout logger handler based on CLI option. Defaults to ERROR.</p></li>
+<li><p><strong>cli_file_loglevel</strong> – LogLevel for file logger handler based on CLI option. Defaults to INFO.</p></li>
+<li><p><strong>verbose</strong> (<em>str</em>) – Flag toggling LogLevel for stdout logger handler, if True sets to ERROR, else INFO.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-components">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-components" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="intro.html" class="btn btn-neutral float-left" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="src" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Lukasz Hoszowski.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

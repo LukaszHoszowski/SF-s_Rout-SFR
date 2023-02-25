@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>components.containers &mdash; SFR 0.1.3 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            SFR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../components.html">components package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">SFR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">components.containers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for components.containers</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">PathLike</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">runtime_checkable</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+
+
+<span class="n">logger_main</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ReportProtocol"><a class="viewcode-back" href="../../components.html#components.containers.ReportProtocol">[docs]</a><span class="nd">@runtime_checkable</span>
+<span class="k">class</span> <span class="nc">ReportProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Protocol class for report object.</span>
+
+<span class="sd">    :param type: Report type, allowed options [&#39;SFDC&#39;], type drives connector and report objects selection</span>
+<span class="sd">    :type type: str</span>
+<span class="sd">    :param name: Report name, propagated to report file name</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param id: Report id, identification number of the report in SFDC</span>
+<span class="sd">    :type id: str</span>
+<span class="sd">    :param path: Report path, save location for the report in form of Path object</span>
+<span class="sd">    :type path: PathLike</span>
+<span class="sd">    :param export_params: Default parameters required by SFDC. Defaults to &#39;?export=csv&amp;enc=UTF-8&amp;isdtp=p1&#39;.</span>
+<span class="sd">    :type export_params: str</span>
+<span class="sd">    :param downloaded: Flag indicating whether the reports has been succesfully downloaded or not</span>
+<span class="sd">    :type downloaded: bool</span>
+<span class="sd">    :param valid: Flag indicating whether the response has been succesfully retrieved or not</span>
+<span class="sd">    :type valid: bool</span>
+<span class="sd">    :param created_date: Report save completition date</span>
+<span class="sd">    :type created_date: datetime</span>
+<span class="sd">    :param pull_date: Report response completition date</span>
+<span class="sd">    :type pull_date: datetime</span>
+<span class="sd">    :param processing_time: The time it took to process the report in seconds </span>
+<span class="sd">    :type pull_date: timedelta</span>
+<span class="sd">    :param attempt_count: Number of attempts to process the report </span>
+<span class="sd">    :type attempt_count: int</span>
+<span class="sd">    :param size: Size of saved report file in Mb</span>
+<span class="sd">    :type size: float</span>
+<span class="sd">    :param response: Container for request response</span>
+<span class="sd">    :type response: str</span>
+<span class="sd">    :param content: Pandas DataFrame based on response</span>
+<span class="sd">    :type content: DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span>
+    <span class="n">export_params</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">downloaded</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">valid</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">created_date</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">pull_date</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">processing_time</span><span class="p">:</span> <span class="n">timedelta</span>
+    <span class="n">attempt_count</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">size</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">response</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">content</span><span class="p">:</span> <span class="n">DataFrame</span></div>
+
+
+<div class="viewcode-block" id="ReportsContainerProtocol"><a class="viewcode-back" href="../../components.html#components.containers.ReportsContainerProtocol">[docs]</a><span class="nd">@runtime_checkable</span>
+<span class="k">class</span> <span class="nc">ReportsContainerProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol class for report container object.</span>
+
+<span class="sd">    :param report_params_list: Collection of dicts with parameters for object crafting.</span>
+<span class="sd">    :type report_params_list: list[dict[str, Any]]</span>
+<span class="sd">    :param summary_report_path: Path to save location of summary report.</span>
+<span class="sd">    :type summary_report_path: PathLike</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ReportsContainerProtocol.create_reports"><a class="viewcode-back" href="../../components.html#components.containers.ReportsContainerProtocol.create_reports">[docs]</a>    <span class="k">def</span> <span class="nf">create_reports</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ReportProtocol</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Orchestrating method to handle report objects factory</span>
+
+<span class="sd">        :return: Collection of Reports</span>
+<span class="sd">        :rtype: list[ReportProtocol]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span></div>
+
+<div class="viewcode-block" id="ReportsContainerProtocol.create_summary_report"><a class="viewcode-back" href="../../components.html#components.containers.ReportsContainerProtocol.create_summary_report">[docs]</a>    <span class="k">def</span> <span class="nf">create_summary_report</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates summary report which consist of all important details regarding Report objects. </span>
+<span class="sd">        Summary report is generated once all the reports are completed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span></div></div>
+
+
+<div class="viewcode-block" id="SfdcReport"><a class="viewcode-back" href="../../components.html#components.containers.SfdcReport">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">SfdcReport</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Concrete class representing Report object from SFDC.</span>
+
+<span class="sd">    :param type: Report type, allowed options [&#39;SFDC&#39;], type drives connector and report objects selection</span>
+<span class="sd">    :type type: str</span>
+<span class="sd">    :param name: Report name, propagated to report file name</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param id: Report id, identification number of the report in SFDC</span>
+<span class="sd">    :type id: str</span>
+<span class="sd">    :param path: Report path, save location for the report in form of Path object</span>
+<span class="sd">    :type path: PathLike</span>
+<span class="sd">    :param export_params: Default parameters required by SFDC. Defaults to &#39;?export=csv&amp;enc=UTF-8&amp;isdtp=p1&#39;.</span>
+<span class="sd">    :type export_params: str</span>
+<span class="sd">    :param downloaded: Flag indicating whether the reports has been succesfully downloaded or not. Defaults to False.</span>
+<span class="sd">    :type downloaded: bool</span>
+<span class="sd">    :param valid: Flag indicating whether the response has been succesfully retrieved or not. Defaults to False.</span>
+<span class="sd">    :type valid: bool</span>
+<span class="sd">    :param created_date: Report save completition date. Defaults to current datetime.</span>
+<span class="sd">    :type created_date: datetime</span>
+<span class="sd">    :param pull_date: Report response completition date. Defaults to current datetime.</span>
+<span class="sd">    :type pull_date: datetime</span>
+<span class="sd">    :param processing_time: The time it took to process the report in seconds. Defaults to 0 microseconds.</span>
+<span class="sd">    :type pull_date: timedelta</span>
+<span class="sd">    :param attempt_count: Number of attempts to process the report. Defaults to 0 .</span>
+<span class="sd">    :type attempt_count: int</span>
+<span class="sd">    :param size: Size of saved report file in Mb. Defaults to 0.0 .</span>
+<span class="sd">    :type size: float</span>
+<span class="sd">    :param response: Container for request response. Defaults to empty string.</span>
+<span class="sd">    :type response: str</span>
+<span class="sd">    :param content: Pandas DataFrame based on response. Defaults to empty Pandas DataFrame.</span>
+<span class="sd">    :type content: DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">PathLike</span>
+    <span class="n">export_params</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;?export=csv&amp;enc=UTF-8&amp;isdtp=p1&#39;</span>
+    <span class="n">downloaded</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">valid</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">created_date</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">pull_date</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">processing_time</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">microseconds</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">attempt_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">response</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">content</span><span class="p">:</span> <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">DataFrame</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReportsContainer"><a class="viewcode-back" href="../../components.html#components.containers.ReportsContainer">[docs]</a><span class="k">class</span> <span class="nc">ReportsContainer</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Concrete class representing ReportContainer object. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">reports_params_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+                 <span class="n">summary_report_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor method for ReportContainer, automatically creates reports after initialization</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reports_params_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">reports_params_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summary_report_path</span><span class="p">:</span> <span class="n">PathLike</span> <span class="o">=</span> <span class="n">summary_report_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reports_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ReportProtocol</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_reports</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_create_sfdc_reports</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">SfdcReport</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;SFDC Report objects factory</span>
+
+<span class="sd">        :return: Generator with SFDC Reeport objects</span>
+<span class="sd">        :rtype: Generator[SfdcReport, None, None]</span>
+<span class="sd">        :yield: SFDC Report instance based on parsed report parameters</span>
+<span class="sd">        :rtype: SfdcReport</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating SFDC report objects&quot;</span><span class="p">)</span>
+        <span class="n">reports</span> <span class="o">=</span> <span class="p">(</span><span class="n">SfdcReport</span><span class="p">(</span><span class="o">**</span><span class="nb">dict</span><span class="p">)</span> <span class="k">for</span> <span class="nb">dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reports_params_list</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">reports</span>
+
+<div class="viewcode-block" id="ReportsContainer.create_reports"><a class="viewcode-back" href="../../components.html#components.containers.ReportsContainer.create_reports">[docs]</a>    <span class="k">def</span> <span class="nf">create_reports</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ReportProtocol</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Orchestrating method to handle report objects factory</span>
+
+<span class="sd">        :return: Collection of Reports</span>
+<span class="sd">        :rtype: list[SfdcReport]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating all report objects&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reports_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_sfdc_reports</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reports_list</span></div>
+
+<div class="viewcode-block" id="ReportsContainer.create_summary_report"><a class="viewcode-back" href="../../components.html#components.containers.ReportsContainer.create_summary_report">[docs]</a>    <span class="k">def</span> <span class="nf">create_summary_report</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates summary report which consist of all important details regarding reports. </span>
+<span class="sd">        Report is generated once all the reports are completed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger_main</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating summary report, saved in </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">summary_report_path</span><span class="p">)</span>
+
+        <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;file_name&#39;</span><span class="p">,</span> <span class="s1">&#39;report_id&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;valid&#39;</span><span class="p">,</span> <span class="s1">&#39;created_date&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;pull_date&#39;</span><span class="p">,</span> <span class="s1">&#39;processing_time&#39;</span><span class="p">,</span> <span class="s1">&#39;attempt_count&#39;</span><span class="p">,</span> <span class="s1">&#39;file_size&#39;</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">summary_report_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF8&#39;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+            <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">report</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reports_list</span><span class="p">:</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">report</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">valid</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">created_date</span><span class="p">,</span>
+                                <span class="n">report</span><span class="o">.</span><span class="n">pull_date</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">processing_time</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">attempt_count</span><span class="p">,</span> <span class="n">report</span><span class="o">.</span><span class="n">size</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Lukasz Hoszowski.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
