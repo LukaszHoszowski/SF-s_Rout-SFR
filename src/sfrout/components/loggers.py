@@ -1,9 +1,19 @@
+"""
+requests.adapters
+~~~~~~~~~~~~~~~~~
+This module contains the transport adapters that Requests uses to define
+and maintain connections.
+"""
+
 import os
 import logging
 import logging.handlers
 
 
-def logger_configurer(cli_stdout_loglevel: str, cli_file_loglevel: str, verbose: bool) -> None:
+def logger_configurer(*,
+                      cli_stdout_loglevel: str, 
+                      cli_file_loglevel: str, 
+                      cli_verbose: bool) -> None:
     """
     Configures logger settings for file and stdout handlers.
 
@@ -24,7 +34,7 @@ def logger_configurer(cli_stdout_loglevel: str, cli_file_loglevel: str, verbose:
         'debug': logging.DEBUG
     }
 
-    if verbose:
+    if cli_verbose:
         slevel = levels.get(cli_stdout_loglevel.lower(), logging.ERROR)
     else:
         slevel = 20

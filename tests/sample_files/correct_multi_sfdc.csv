@@ -1,0 +1,3 @@
+report_type,report_file_name,report_id,report_path,optional_export_params
+SFDC,correct_sfdc_report_without_optional_export_params_win_path,11A1B000001abVa,C:\
+SFDC,correct_sfdc_report_without_optional_export_params_unix_path,11A1B000001abVa,/c/

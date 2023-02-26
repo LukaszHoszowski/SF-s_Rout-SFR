@@ -24,8 +24,6 @@ class Connector(Protocol):
 
     :param queue: Shared queue object.
     :type queue: Queue
-    :param verbose: CLI parameter used as switch between progress bar and logging to stdout on INFO level.
-    :type verbose: bool
     :param timeout: Request's timeout value in seconds.
     :type timeout: int
     :param headers: Headers required to establish the connection.
@@ -33,7 +31,6 @@ class Connector(Protocol):
     """
 
     queue: Queue
-    verbose: bool
     timeout: int
     headers: dict[str, str]
 
@@ -74,7 +71,7 @@ class SfdcConnector():
     def __init__(self,
                  queue: Queue,
                  *,
-                 verbose: bool = False,
+                 cli_verbose: bool = False,
                  timeout: int = 900,
                  headers: dict[str, str] = {'Content-Type': 'application/csv',
                                             'X-PrettyPrint': '1'}):
@@ -91,7 +88,7 @@ class SfdcConnector():
         """
 
         self.queue = queue
-        self.verbose = verbose
+        self.cli_verbose = cli_verbose
         self.domain = str(os.getenv("SFDC_DOMAIN"))
         self.timeout = timeout
         self.headers = headers
@@ -245,7 +242,7 @@ class SfdcConnector():
                             '%s succesfuly downloaded and put to the queue', report.name)
                     except aiohttp.ClientPayloadError as e:
                         logger_main.warning(
-                            '%s is invalid, Unexpected end of stream, SFDC just broke the connection', report.name, e)
+                            '%s is invalid, Unexpected end of stream, SFDC just broke the connection -> %s', report.name, e)
                         continue
                 elif r.status == 404:
                     logger_main.error(
@@ -269,7 +266,7 @@ class SfdcConnector():
         :type tasks: list[asyncio.Task]
         """
 
-        if self.verbose:
+        if self.cli_verbose:
             _ = [await task_ for task_ in tqdm.as_completed(tasks, total=len(tasks))]
 
     def _create_async_tasks(self, reports: list[ReportProtocol], session: aiohttp.ClientSession) -> list[asyncio.Task]:

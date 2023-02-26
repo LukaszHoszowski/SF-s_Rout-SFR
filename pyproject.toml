@@ -3,9 +3,13 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "SFR"
+name = "sfrout"
+version = "0.0.1"
 
 [tool.pytest.ini_options]
 addopts = [
     "--import-mode=importlib",
+]
+pythonpath = [
+  "src/sfrout",
 ]

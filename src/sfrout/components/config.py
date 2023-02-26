@@ -42,6 +42,7 @@ class Config:
     """
 
     def __init__(self,
+                 *,
                  cli_reports_list_path: str,
                  cli_report: str,
                  cli_path: str,
